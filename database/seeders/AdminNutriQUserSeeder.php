@@ -5,7 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Carbon\Carbon; // Pastikan Carbon di-import
+use Carbon\Carbon;
 
 class AdminNutriQUserSeeder extends Seeder
 {
@@ -16,24 +16,20 @@ class AdminNutriQUserSeeder extends Seeder
      */
     public function run()
     {
-        // Hapus user dengan email/username ini terlebih dahulu jika sudah ada,
-        // untuk mencegah duplikasi saat seeder dijalankan berulang.
-        DB::table('users')->where('email', 'yulitanurfathin@gmail.com')->delete();
-        // Atau DB::table('users')->where('username', 'Admin')->delete();
-        // Pilih salah satu yang paling unik untuk identifikasi data admin
-
-        DB::table('users')->insert([
-            'id' => 1, // ID ini bisa dihilangkan jika ingin AUTO_INCREMENT otomatis
-            'name' => 'Yulita Nur Fathin',
-            'email' => 'yulitanurfathin@gmail.com',
-            'email_verified_at' => null,
-            'password' => '$2y$12$T6E89j9J88/h.MFqOWJbwONop7cyvWebX9DZ6xNpGfkf3f4HpObf2', // Password sudah di-hash
-            'username' => 'Admin',
-            'no_telp' => '0826728681697',
-            'alamat' => null, // Sesuai data yang Anda berikan
-            'role' => 'admin',
-            'created_at' => Carbon::now(), // Menggunakan waktu saat seeder dijalankan
-            'updated_at' => Carbon::now(), // Menggunakan waktu saat seeder dijalankan
-        ]);
+        DB::table('users')->updateOrCreate(
+            [
+                'email' => 'yulitanurfathin@gmail.com', // Kunci pencarian: pastikan email ini unik untuk admin
+            ],
+            [
+                'name' => 'Yulita Nur Fathin',
+                'password' => Hash::make('admin123'), // Ini akan selalu di-hash ulang atau di-update jika ada
+                'username' => 'Admin', // Pastikan username ini juga unik dan belum dipakai user lain
+                'no_telp' => '0826728681697',
+                'alamat' => null,
+                'role' => 'admin',
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ]
+        );
     }
 }
