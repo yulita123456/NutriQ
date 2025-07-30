@@ -64,8 +64,8 @@ class ProductController extends Controller
             'gula'          => 'nullable|numeric',
             'karbohidrat'   => 'nullable|numeric',
             'garam'         => 'nullable|numeric',
-            'foto.*'        => 'image|mimes:jpg,jpeg,png|max:2048',
-            'foto_gizi'     => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'foto.*'        => 'image|mimes:jpg,jpeg,png|max:5120',
+            'foto_gizi'     => 'nullable|image|mimes:jpg,jpeg,png|max:5120',
         ]);
 
         // Tambahkan blok ini untuk memastikan nilai null menjadi 0
@@ -145,8 +145,8 @@ class ProductController extends Controller
             'gula'          => 'nullable|numeric',
             'karbohidrat'   => 'nullable|numeric',
             'garam'         => 'nullable|numeric',
-            'foto.*'        => 'image|mimes:jpg,jpeg,png|max:2048',
-            'foto_gizi'     => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'foto.*'        => 'image|mimes:jpg,jpeg,png|max:5120',
+            'foto_gizi'     => 'nullable|image|mimes:jpg,jpeg,png|max:5120',
         ]);
 
         // Tambahkan blok ini untuk memastikan nilai null menjadi 0
@@ -309,8 +309,8 @@ class ProductController extends Controller
             'gula' => 'required|numeric',
             'karbohidrat' => 'required|numeric',
             'garam' => 'required|numeric',
-            'foto.*' => 'image|mimes:jpg,jpeg,png|max:2048',
-            'foto_gizi' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'foto.*' => 'image|mimes:jpg,jpeg,png|max:5120',
+            'foto_gizi' => 'nullable|image|mimes:jpg,jpeg,png|max:5120',
         ]);
 
         $fotoPaths = [];
