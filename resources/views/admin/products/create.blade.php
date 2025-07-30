@@ -22,10 +22,8 @@
             {{-- TAMPILKAN ERROR VALIDASI UMUM JIKA ADA --}}
             @if ($errors->any())
                 <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-                    <strong class="font-bold">Oops! Ada masalah dengan input Anda:</strong>
+                    <strong class="font-bold">File Foto Melebihi Batas Ukuran 2MB, Compress Ukuran Foto Anda</strong>
                     <ul class="mt-2 list-disc list-inside">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
                         @endforeach
                     </ul>
                 </div>
@@ -84,6 +82,9 @@
                             </label>
                             <div id="preview-produk" class="flex gap-3 mt-3"></div>
                             @error('foto.*') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
+                            <span class="block mt-1 text-xs text-gray-500 leading-relaxed">
+                                <strong>File Foto Jangan Melebihi 2MB</strong><br>
+                            </span>
                         </div>
                     </div>
                 </div>
