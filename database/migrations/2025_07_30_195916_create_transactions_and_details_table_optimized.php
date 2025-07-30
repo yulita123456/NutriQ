@@ -7,19 +7,22 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * Jalankan migrasi.
      */
     public function up(): void
     {
         // Tabel transaksi utama
         Schema::create('transactions', function (Blueprint $table) {
-            $table->id();
+            $table->id(); // id
+            $table->string('order_id')->unique(); // order_id
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->integer('total');
-            $table->string('status')->default('pending'); // pending, paid, cancelled
+            $table->string('status')->default('pending'); // pending, settlement, failed
             $table->string('alamat')->nullable();
             $table->text('catatan')->nullable();
-            $table->timestamps();
+            $table->string('snap_token')->nullable(); // snap_token
+            $table->string('redirect_url')->nullable(); // redirect_url
+            $table->timestamps(); // created_at, updated_at
         });
 
         // Tabel detail transaksi
@@ -35,7 +38,7 @@ return new class extends Migration
     }
 
     /**
-     * Reverse the migrations.
+     * Batalkan migrasi.
      */
     public function down(): void
     {
