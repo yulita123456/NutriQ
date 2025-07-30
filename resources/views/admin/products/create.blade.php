@@ -19,6 +19,18 @@
         <form action="{{ route('admin.produk.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
             @csrf
 
+            {{-- TAMPILKAN ERROR VALIDASI UMUM JIKA ADA --}}
+            @if ($errors->any())
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                    <strong class="font-bold">Oops! Ada masalah dengan input Anda:</strong>
+                    <ul class="mt-2 list-disc list-inside">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             {{-- INFORMASI DASAR PRODUK --}}
             <div class="border-b pb-6">
                 <h3 class="text-lg font-semibold text-gray-800 mb-4">Informasi Dasar</h3>
@@ -26,46 +38,52 @@
                     <div class="grid md:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-gray-700 mb-2 font-medium">Kode Produk</label>
-                            <input type="text" name="kode_produk"
-                                class="w-full border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-green-300 shadow-sm" required>
+                            <input type="text" name="kode_produk" value="{{ old('kode_produk') }}"
+                                class="w-full border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-green-300 shadow-sm @error('kode_produk') border-red-500 @enderror" required>
+                            @error('kode_produk') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
                         </div>
                         <div>
                             <label class="block text-gray-700 mb-2 font-medium">Nama Produk</label>
-                            <input type="text" name="nama_produk"
-                                class="w-full border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-green-300 shadow-sm" required>
+                            <input type="text" name="nama_produk" value="{{ old('nama_produk') }}"
+                                class="w-full border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-green-300 shadow-sm @error('nama_produk') border-red-500 @enderror" required>
+                            @error('nama_produk') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
                         </div>
                     </div>
                     <div class="grid md:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-gray-700 mb-2 font-medium">Kategori</label>
-                            <select name="kategori" id="kategori" class="w-full border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-green-300 shadow-sm" required>
+                            <select name="kategori" id="kategori" class="w-full border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-green-300 shadow-sm @error('kategori') border-red-500 @enderror" required>
                                 <option value="">-- Pilih Kategori --</option>
-                                <option value="minuman">Minuman</option>
-                                <option value="snack dan cemilan">Snack dan Cemilan</option>
-                                <option value="makanan instan">Makanan Instan</option>
+                                <option value="minuman" {{ old('kategori') == 'minuman' ? 'selected' : '' }}>Minuman</option>
+                                <option value="snack dan cemilan" {{ old('kategori') == 'snack dan cemilan' ? 'selected' : '' }}>Snack dan Cemilan</option>
+                                <option value="makanan instan" {{ old('kategori') == 'makanan instan' ? 'selected' : '' }}>Makanan Instan</option>
                             </select>
+                            @error('kategori') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
                         </div>
                         <div>
                             <label class="block text-gray-700 mb-2 font-medium">Stock</label>
-                            <input type="number" name="stock"
-                                class="w-full border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-green-300 shadow-sm" required>
+                            <input type="number" name="stock" value="{{ old('stock') }}"
+                                class="w-full border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-green-300 shadow-sm @error('stock') border-red-500 @enderror" required>
+                            @error('stock') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
                         </div>
                     </div>
                     <div class="grid md:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-gray-700 mb-2 font-medium">Harga (Rp)</label>
-                            <input type="number" name="harga"
-                                class="w-full border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-green-300 shadow-sm" required>
+                            <input type="number" name="harga" value="{{ old('harga') }}"
+                                class="w-full border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-green-300 shadow-sm @error('harga') border-red-500 @enderror" required>
+                            @error('harga') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
                         </div>
                         <div>
                             <label class="block mb-2 text-gray-700 font-medium">Foto Produk <span class="text-xs text-gray-400 font-normal">(max 2 foto)</span></label>
                             <label for="foto_produk"
-                                class="flex flex-col items-center justify-center h-36 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-green-400 transition bg-gray-50">
+                                class="flex flex-col items-center justify-center h-36 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-green-400 transition bg-gray-50 @error('foto.*') border-red-500 @enderror">
                                 <i class="fas fa-image fa-2x text-green-400"></i>
                                 <span class="mt-1 text-sm text-gray-600">Klik untuk pilih hingga 2 foto produk</span>
                                 <input type="file" name="foto[]" id="foto_produk" accept="image/*" multiple class="hidden" />
                             </label>
                             <div id="preview-produk" class="flex gap-3 mt-3"></div>
+                            @error('foto.*') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
                         </div>
                     </div>
                 </div>
@@ -74,7 +92,7 @@
             {{-- CHECKBOX UTAMA UNTUK MENAMPILKAN FORM GIZI --}}
             <div>
                 <label class="flex items-center space-x-3 cursor-pointer">
-                    <input type="checkbox" id="add-nutrition-toggle" class="h-5 w-5 rounded text-green-500 focus:ring-green-400">
+                    <input type="checkbox" id="add-nutrition-toggle" name="add_nutrition_toggle" class="h-5 w-5 rounded text-green-500 focus:ring-green-400" {{ old('add_nutrition_toggle') ? 'checked' : '' }}>
                     <span class="font-semibold text-gray-800 text-lg">Tambahkan Informasi Nilai Gizi?</span>
                 </label>
             </div>
@@ -83,19 +101,20 @@
             <div id="nutrition-section" class="hidden space-y-6">
                 <div id="show-all-nutrition-wrapper" class="hidden">
                     <label class="flex items-center space-x-2 text-sm text-gray-600">
-                      <input type="checkbox" id="show-all-nutrition" class="rounded text-green-500 focus:ring-green-400">
+                      <input type="checkbox" id="show-all-nutrition" class="rounded text-green-500 focus:ring-green-400" {{ old('show_all_nutrition') ? 'checked' : '' }}>
                       <span>Tampilkan semua kolom gizi (opsional)</span>
                     </label>
                 </div>
                 <div>
                     <label class="block mb-2 text-gray-700 font-medium">Foto Informasi Gizi</label>
                     <label for="foto_gizi"
-                        class="flex flex-col items-center justify-center h-32 border-2 border-dashed border-green-400 rounded-lg cursor-pointer hover:border-green-500 transition bg-green-50">
+                        class="flex flex-col items-center justify-center h-32 border-2 border-dashed border-green-400 rounded-lg cursor-pointer hover:border-green-500 transition bg-green-50 @error('foto_gizi') border-red-500 @enderror">
                         <i class="fas fa-seedling fa-lg text-green-500"></i>
                         <span class="mt-1 text-sm text-green-700">Klik untuk unggah 1 foto label gizi</span>
                         <input type="file" name="foto_gizi" id="foto_gizi" accept="image/*" class="hidden" />
                     </label>
                     <div id="preview-gizi" class="flex gap-3 mt-3"></div>
+                    @error('foto_gizi') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
                     <span class="block mt-1 text-xs text-gray-500 leading-relaxed">
                         <strong>Tips Mengunggah Label Gizi:</strong><br>
                         - Pastikan foto label diambil dengan <b>kamera yang jelas &amp; tidak blur</b>.<br>
@@ -108,32 +127,39 @@
                 <div class="grid md:grid-cols-3 gap-6">
                     <div class="nutrition-field-all">
                         <label class="block text-gray-700 mb-2 font-medium">Kalori (kkal)</label>
-                        <input type="number" name="kalori" id="kalori" class="w-full border border-gray-300 px-3 py-2 rounded shadow-sm">
+                        <input type="number" name="kalori" id="kalori" value="{{ old('kalori') }}" class="w-full border border-gray-300 px-3 py-2 rounded shadow-sm @error('kalori') border-red-500 @enderror">
+                        @error('kalori') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
                     </div>
                     <div class="nutrition-field-all">
                         <label class="block text-gray-700 mb-2 font-medium">Karbohidrat (g)</label>
-                        <input type="number" step="0.1" name="karbohidrat" id="karbohidrat" class="w-full border border-gray-300 px-3 py-2 rounded shadow-sm">
+                        <input type="number" step="0.1" name="karbohidrat" id="karbohidrat" value="{{ old('karbohidrat') }}" class="w-full border border-gray-300 px-3 py-2 rounded shadow-sm @error('karbohidrat') border-red-500 @enderror">
+                        @error('karbohidrat') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
                     </div>
                     <div class="nutrition-field-all">
                         <label class="block text-gray-700 mb-2 font-medium">Gula (g)</label>
-                        <input type="number" step="0.1" name="gula" id="gula" class="w-full border border-gray-300 px-3 py-2 rounded shadow-sm">
+                        <input type="number" step="0.1" name="gula" id="gula" value="{{ old('gula') }}" class="w-full border border-gray-300 px-3 py-2 rounded shadow-sm @error('gula') border-red-500 @enderror">
+                        @error('gula') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
                     </div>
                     <div class="nutrition-field-all">
                         <label class="block text-gray-700 mb-2 font-medium">Garam (mg)</label>
-                        <input type="number" step="0.1" name="garam" id="garam" class="w-full border border-gray-300 px-3 py-2 rounded shadow-sm">
+                        <input type="number" step="0.1" name="garam" id="garam" value="{{ old('garam') }}" class="w-full border border-gray-300 px-3 py-2 rounded shadow-sm @error('garam') border-red-500 @enderror">
+                        @error('garam') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
                     </div>
                     {{-- Kolom opsional --}}
                     <div class="nutrition-field-optional">
                         <label class="block text-gray-700 mb-2 font-medium">Lemak Total (g)</label>
-                        <input type="number" step="0.1" name="lemak_total" id="lemak_total" class="w-full border border-gray-300 px-3 py-2 rounded shadow-sm">
+                        <input type="number" step="0.1" name="lemak_total" id="lemak_total" value="{{ old('lemak_total') }}" class="w-full border border-gray-300 px-3 py-2 rounded shadow-sm @error('lemak_total') border-red-500 @enderror">
+                        @error('lemak_total') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
                     </div>
                     <div class="nutrition-field-optional">
                         <label class="block text-gray-700 mb-2 font-medium">Lemak Jenuh (g)</label>
-                        <input type="number" step="0.1" name="lemak_jenuh" id="lemak_jenuh" class="w-full border border-gray-300 px-3 py-2 rounded shadow-sm">
+                        <input type="number" step="0.1" name="lemak_jenuh" id="lemak_jenuh" value="{{ old('lemak_jenuh') }}" class="w-full border border-gray-300 px-3 py-2 rounded shadow-sm @error('lemak_jenuh') border-red-500 @enderror">
+                        @error('lemak_jenuh') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
                     </div>
                     <div class="nutrition-field-optional">
                         <label class="block text-gray-700 mb-2 font-medium">Protein (g)</label>
-                        <input type="number" step="0.1" name="protein" id="protein" class="w-full border border-gray-300 px-3 py-2 rounded shadow-sm">
+                        <input type="number" step="0.1" name="protein" id="protein" value="{{ old('protein') }}" class="w-full border border-gray-300 px-3 py-2 rounded shadow-sm @error('protein') border-red-500 @enderror">
+                        @error('protein') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
                     </div>
                 </div>
             </div>
@@ -163,7 +189,7 @@ document.addEventListener('DOMContentLoaded', function () {
             nutritionSection.classList.remove('hidden');
         } else {
             nutritionSection.classList.add('hidden');
-            showAllCheckbox.checked = false;
+            showAllCheckbox.checked = false; // Reset checkbox jika section disembunyikan
         }
 
         const selectedKategori = kategoriSelect.value;
@@ -172,6 +198,7 @@ document.addEventListener('DOMContentLoaded', function () {
             showAllCheckboxWrapper.classList.remove('hidden');
         } else {
             showAllCheckboxWrapper.classList.add('hidden');
+            showAllCheckbox.checked = false; // Reset checkbox jika section disembunyikan
         }
 
         if (selectedKategori === 'minuman' && !showAllCheckbox.checked) {
