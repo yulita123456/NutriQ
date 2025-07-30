@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
+use Illuminate\Support\Facades\URL; // <<< TAMBAHKAN INI
 use App\Models\Product;
 
 class AppServiceProvider extends ServiceProvider
@@ -34,5 +35,11 @@ class AppServiceProvider extends ServiceProvider
             }
             $view->with('notifikasi', $notifikasi);
         });
+
+        // <<< TAMBAHKAN BLOK INI UNTUK MEMAKSA HTTPS >>>
+        if (env('APP_ENV') === 'production') {
+            URL::forceScheme('https');
+        }
+        // <<< AKHIR BLOK INI >>>
     }
 }
