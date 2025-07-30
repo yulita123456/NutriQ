@@ -1,0 +1,20 @@
+/* Atur lebar dan tinggi maksimum FilePond container */
+.filepond--root {
+    width: 100% !important;      /* Lebar penuh parent */
+    max-width: 100%;             /* Pastikan tidak overflow */
+    max-height: 180px !important; /* Batasi tinggi maksimal */
+    margin: 0 auto;
+}
+
+/* Optional: supaya preview gambar dan tombol diatur lebih rapi */
+.filepond--panel-root {
+    height: 140px !important;    /* Atur tinggi panel */
+}
+
+
+.filepond--drop-label {
+    min-height: 140px !important; /* tinggi minimal */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
