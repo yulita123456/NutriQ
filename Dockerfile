@@ -16,16 +16,16 @@ RUN apt-get update && \
         libfreetype6-dev \
         libjpeg62-turbo-dev \
         libwebp-dev && \
-    # Instal Node.js dan NPM
+    # Instal Node.js dan NPM untuk kompilasi aset frontend (Vite)
+    # Node.js dan NPM diinstal dalam satu layer RUN yang sama
     curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
     apt-get install -y nodejs && \
     rm -rf /var/lib/apt/lists/*
 
-# Instal ekstensi PHP
+# Instal ekstensi PHP yang dibutuhkan
 RUN docker-php-ext-install pdo_mysql mbstring zip exif pcntl gd
 
-# Atur document root Apache ke 'public' dengan file konfigurasi kustom
-# Ini lebih andal dari pada perintah sed
+# Atur konfigurasi Apache dengan file kustom yang andal
 COPY docker/apache_config.conf /etc/apache2/sites-available/000-default.conf
 RUN a2enmod rewrite
 
@@ -35,7 +35,7 @@ COPY . /var/www/html
 # Atur direktori kerja
 WORKDIR /var/www/html
 
-# Instal Composer dan jalankan semua perintah build
+# Instal Composer dan jalankan semua perintah build dalam satu layer RUN
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer && \
     composer install --no-dev --optimize-autoloader --no-interaction && \
     npm install && \
@@ -50,8 +50,8 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
     php artisan view:cache
 
 # Atur izin direktori
-RUN chown -R www-data:www-data storage bootstrap/cache public/build
-RUN chmod -R 775 storage bootstrap/cache public/build
+RUN chown -R www-data:www-data /var/www/html && \
+    chmod -R 775 storage bootstrap/cache
 
 # Ekspos port 80 dan jalankan Apache
 EXPOSE 80
