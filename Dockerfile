@@ -1,7 +1,7 @@
-# Gunakan image PHP base
+# Use a PHP base image
 FROM php:8.2-apache
 
-# Instal dependensi sistem, Tesseract, dan Node.js
+# Install system dependencies, Tesseract, and Node.js
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         git \
@@ -16,43 +16,47 @@ RUN apt-get update && \
         libfreetype6-dev \
         libjpeg62-turbo-dev \
         libwebp-dev && \
-    # Instal Node.js dan NPM untuk kompilasi aset frontend (Vite)
-    # Node.js dan NPM diinstal dalam satu layer RUN yang sama
+    # Install Node.js and NPM
     curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
     apt-get install -y nodejs && \
     rm -rf /var/lib/apt/lists/*
 
-# Instal ekstensi PHP yang dibutuhkan
+# Install required PHP extensions
 RUN docker-php-ext-install pdo_mysql mbstring zip exif pcntl gd
 
-# Atur konfigurasi Apache dengan file kustom yang andal
+# Configure Apache with a custom vhost file and enable mod_rewrite
 COPY docker/apache_config.conf /etc/apache2/sites-available/000-default.conf
 RUN a2enmod rewrite
 
-# Salin kode aplikasi ke container
+# Copy the Laravel application code into the container
 COPY . /var/www/html
 
-# Atur direktori kerja
+# Set working directory
 WORKDIR /var/www/html
 
-# Instal Composer dan jalankan semua perintah build dalam satu layer RUN
+# Install Composer and run all build commands
+# We group these commands to ensure they run in the correct context
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer && \
     composer install --no-dev --optimize-autoloader --no-interaction && \
     npm install && \
     npm run build && \
     php artisan migrate --force && \
-    php artisan storage:link && \
-    php artisan config:clear && \
+    php artisan storage:link
+
+# Crucial for permissions: run this after storage:link
+# First, change the ownership of the entire directory to the www-data user
+RUN chown -R www-data:www-data /var/www/html && \
+    # Then, set more granular permissions on specific directories
+    chmod -R 775 storage bootstrap/cache
+
+# Run Laravel caching commands after permissions are set
+RUN php artisan config:clear && \
     php artisan route:clear && \
     php artisan view:clear && \
     php artisan config:cache && \
     php artisan route:cache && \
     php artisan view:cache
 
-# Atur izin direktori
-RUN chown -R www-data:www-data /var/www/html && \
-    chmod -R 775 storage bootstrap/cache
-
-# Ekspos port 80 dan jalankan Apache
+# Expose port 80 and start Apache
 EXPOSE 80
 CMD ["apache2-foreground"]
