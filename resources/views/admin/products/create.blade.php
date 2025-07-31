@@ -22,8 +22,11 @@
             {{-- TAMPILKAN ERROR VALIDASI UMUM JIKA ADA --}}
             @if ($errors->any())
                 <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-                    <strong class="font-bold">File Foto Melebihi Batas Ukuran 2MB, Compress Ukuran Foto Anda</strong>
+                    <strong class="font-bold">Terjadi Kesalahan!</strong>
                     <ul class="mt-2 list-disc list-inside">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
                     </ul>
                 </div>
             @endif
@@ -72,7 +75,7 @@
                             @error('harga') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
                         </div>
                         <div>
-                            <label class="block mb-2 text-gray-700 font-medium">Foto Produk <span class="text-xs text-gray-400 font-normal">(max 2 foto)</span></label>
+                            <label class="block mb-2 text-gray-700 font-medium">Foto Produk <span class="text-xs text-gray-400 font-normal">(maks 2 foto)</span></label>
                             <label for="foto_produk"
                                 class="flex flex-col items-center justify-center h-36 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-green-400 transition bg-gray-50 @error('foto.*') border-red-500 @enderror">
                                 <i class="fas fa-image fa-2x text-green-400"></i>
@@ -82,7 +85,7 @@
                             <div id="preview-produk" class="flex gap-3 mt-3"></div>
                             @error('foto.*') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
                             <span class="block mt-1 text-xs text-gray-500 leading-relaxed">
-                                <strong>File Foto Jangan Melebihi 2MB</strong><br>
+                                <strong>Ukuran file foto maksimal 2MB.</strong>
                             </span>
                         </div>
                     </div>
@@ -125,22 +128,22 @@
                 </div>
 
                 <div class="grid md:grid-cols-3 gap-6">
-                    <div class="nutrition-field-all">
+                    <div class="nutrition-field-always-show">
                         <label class="block text-gray-700 mb-2 font-medium">Kalori (kkal)</label>
                         <input type="number" name="kalori" id="kalori" value="{{ old('kalori') }}" class="w-full border border-gray-300 px-3 py-2 rounded shadow-sm @error('kalori') border-red-500 @enderror">
                         @error('kalori') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
                     </div>
-                    <div class="nutrition-field-all">
+                    <div class="nutrition-field-always-show">
                         <label class="block text-gray-700 mb-2 font-medium">Karbohidrat (g)</label>
                         <input type="number" step="0.1" name="karbohidrat" id="karbohidrat" value="{{ old('karbohidrat') }}" class="w-full border border-gray-300 px-3 py-2 rounded shadow-sm @error('karbohidrat') border-red-500 @enderror">
                         @error('karbohidrat') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
                     </div>
-                    <div class="nutrition-field-all">
+                    <div class="nutrition-field-always-show">
                         <label class="block text-gray-700 mb-2 font-medium">Gula (g)</label>
                         <input type="number" step="0.1" name="gula" id="gula" value="{{ old('gula') }}" class="w-full border border-gray-300 px-3 py-2 rounded shadow-sm @error('gula') border-red-500 @enderror">
                         @error('gula') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
                     </div>
-                    <div class="nutrition-field-all">
+                    <div class="nutrition-field-always-show">
                         <label class="block text-gray-700 mb-2 font-medium">Garam (mg)</label>
                         <input type="number" step="0.1" name="garam" id="garam" value="{{ old('garam') }}" class="w-full border border-gray-300 px-3 py-2 rounded shadow-sm @error('garam') border-red-500 @enderror">
                         @error('garam') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
@@ -176,7 +179,6 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // Bagian untuk form dinamis
     const addNutritionToggle = document.getElementById('add-nutrition-toggle');
     const nutritionSection = document.getElementById('nutrition-section');
     const kategoriSelect = document.getElementById('kategori');
@@ -194,13 +196,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const selectedKategori = kategoriSelect.value;
 
+        // Tampilkan checkbox "Tampilkan semua kolom gizi" hanya jika kategori "minuman" dan toggle gizi aktif
         if (selectedKategori === 'minuman' && addNutritionToggle.checked) {
             showAllCheckboxWrapper.classList.remove('hidden');
         } else {
             showAllCheckboxWrapper.classList.add('hidden');
-            showAllCheckbox.checked = false; // Reset checkbox jika section disembunyikan
+            showAllCheckbox.checked = false; // Reset checkbox jika tidak relevan
         }
 
+        // Tampilkan/sembunyikan kolom opsional berdasarkan kategori dan checkbox "tampilkan semua"
         if (selectedKategori === 'minuman' && !showAllCheckbox.checked) {
             optionalFields.forEach(field => field.classList.add('hidden'));
         } else {
@@ -208,10 +212,12 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    // Event listeners
     addNutritionToggle.addEventListener('change', updateFormVisibility);
     kategoriSelect.addEventListener('change', updateFormVisibility);
     showAllCheckbox.addEventListener('change', updateFormVisibility);
 
+    // Initial call to set correct visibility based on initial state/old input
     updateFormVisibility();
 
     // ===== Auto preview Foto Produk (multiple) =====
@@ -269,13 +275,13 @@ document.addEventListener('DOMContentLoaded', function () {
         .then(res => res.json())
         .then(data => {
             if (data.parsed_data) {
-                document.getElementById('kalori').value = data.parsed_data.kalori || 0;
-                document.getElementById('lemak_total').value = data.parsed_data.lemak_total || 0;
-                document.getElementById('lemak_jenuh').value = data.parsed_data.lemak_jenuh || 0;
-                document.getElementById('protein').value = data.parsed_data.protein || 0;
-                document.getElementById('gula').value = data.parsed_data.gula || 0;
-                document.getElementById('karbohidrat').value = data.parsed_data.karbohidrat || 0;
-                document.getElementById('garam').value = data.parsed_data.garam || 0;
+                document.getElementById('kalori').value = data.parsed_data.kalori || '';
+                document.getElementById('lemak_total').value = data.parsed_data.lemak_total || '';
+                document.getElementById('lemak_jenuh').value = data.parsed_data.lemak_jenuh || '';
+                document.getElementById('protein').value = data.parsed_data.protein || '';
+                document.getElementById('gula').value = data.parsed_data.gula || '';
+                document.getElementById('karbohidrat').value = data.parsed_data.karbohidrat || '';
+                document.getElementById('garam').value = data.parsed_data.garam || '';
             } else {
                 alert('Gagal mengekstrak data. Silakan periksa gambar label gizi.');
             }
@@ -288,7 +294,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // ===== Converter Koma ke Titik =====
     const decimalFields = [
-        'lemak_total', 'lemak_jenuh', 'protein', 'gula', 'karbohidrat', 'garam'
+        'kalori', 'lemak_total', 'lemak_jenuh', 'protein', 'gula', 'karbohidrat', 'garam'
     ];
     decimalFields.forEach(function(field) {
         const input = document.getElementById(field);

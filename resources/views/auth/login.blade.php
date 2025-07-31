@@ -22,10 +22,14 @@
             @enderror
         </div>
 
-        <div class="mb-4">
+        <div class="mb-4 relative"> {{-- Tambahkan 'relative' di sini untuk penempatan ikon --}}
             <label for="password" class="block text-gray-700 font-semibold mb-1">Password</label>
             <input id="password" type="password" name="password" required
                 class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 @error('password') border-red-500 @enderror" />
+            <span class="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer top-7" id="togglePassword">
+                {{-- Icon mata, gunakan Font Awesome. Pastikan Anda sudah menyertakan CDN Font Awesome di layout.guest atau file terkait. --}}
+                <i class="fas fa-eye text-gray-500 hover:text-gray-700"></i>
+            </span>
             @error('password')
                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
             @enderror
@@ -37,7 +41,6 @@
         </div>
 
         <div class="flex items-center justify-between">
-            {{-- PERUBAHAN DI SINI --}}
             @if (Route::has('admin.password.request'))
                 <a href="{{ route('admin.password.request') }}"
                     class="text-sm text-green-700 hover:underline focus:outline-none focus:ring-2 focus:ring-green-400 rounded">
@@ -52,4 +55,23 @@
         </div>
     </form>
 </div>
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordField = document.getElementById('password');
+
+        togglePassword.addEventListener('click', function () {
+            // Toggle the type attribute
+            const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordField.setAttribute('type', type);
+
+            // Toggle the eye icon
+            this.querySelector('i').classList.toggle('fa-eye');
+            this.querySelector('i').classList.toggle('fa-eye-slash');
+        });
+    });
+</script>
+@endpush
 @endsection
