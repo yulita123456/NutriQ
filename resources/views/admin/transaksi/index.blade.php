@@ -90,7 +90,7 @@
 
     <!-- OPSIONAL: Summary ringkas -->
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4 text-xs">
-        <div class="bg-green-100 rounded-xl py-3 text-center">
+        <div class="bg-green-50 rounded-xl py-3 text-center">
             <div class="font-semibold text-green-900">{{ $transactions->total() }}</div>
             <div class="text-green-500">Total Transaksi</div>
         </div>
