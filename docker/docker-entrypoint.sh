@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# Pastikan symlink storage terbuat atau sudah ada
+php artisan storage:link
+
 # Jalankan migrasi database
 php artisan migrate --force
 
