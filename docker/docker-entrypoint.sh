@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Cek apakah symlink sudah ada, jika belum buat.
+# Pastikan symlink storage terbuat atau sudah ada
 if [ ! -L /var/www/html/public/storage ]; then
     php artisan storage:link
 fi

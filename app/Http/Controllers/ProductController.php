@@ -19,27 +19,22 @@ class ProductController extends Controller
     {
         $query = Product::query();
 
-        // Filter pencarian nama produk
         if ($request->filled('search')) {
             $query->where('nama_produk', 'like', '%' . $request->search . '%');
         }
 
-        // Filter kategori produk
         if ($request->filled('kategori')) {
             $query->where('kategori', $request->kategori);
         }
 
-        // Filter harga minimum
         if ($request->filled('harga_min')) {
             $query->where('harga', '>=', $request->harga_min);
         }
 
-        // Filter harga maksimum
         if ($request->filled('harga_max')) {
             $query->where('harga', '<=', $request->harga_max);
         }
 
-        // Paginate hasil filter
         $products = $query->paginate(15);
 
         return view('admin.products.index', compact('products'));
@@ -79,14 +74,14 @@ class ProductController extends Controller
         if ($request->hasFile('foto')) {
             Log::info('Proses upload foto produk dimulai.');
             foreach ($request->file('foto') as $foto) {
-                // Menggunakan store() tanpa storeAs() untuk mendapatkan path yang relatif ke disk
-                $path = $foto->store('foto_produk', 'public');
+                // Simpan file langsung di direktori public/uploads/foto_produk
+                $path = $foto->store('uploads/foto_produk', 'public');
                 Log::info('Path file yang disimpan: ' . $path);
                 if (!$path) {
                     Log::error('Gagal menyimpan file foto produk.');
                     return back()->withErrors(['foto' => 'Gagal upload file!']);
                 }
-                $fotoPaths[] = 'storage/' . $path; // Laravel secara default menggunakan disk 'public'
+                $fotoPaths[] = 'uploads/foto_produk/' . basename($path); // <--- Perbaikan di sini
                 Log::info('Path yang akan disimpan di DB: ' . end($fotoPaths));
             }
         }
@@ -95,10 +90,11 @@ class ProductController extends Controller
         if ($request->hasFile('foto_gizi')) {
             Log::info('Proses upload foto gizi dimulai.');
             $fotoGizi = $request->file('foto_gizi');
-            $pathGizi = $fotoGizi->store('foto_gizi', 'public');
+            // Simpan file gizi langsung di direktori public/uploads/foto_gizi
+            $pathGizi = $fotoGizi->store('uploads/foto_gizi', 'public');
             Log::info('Path file gizi yang disimpan: ' . $pathGizi);
             if ($pathGizi) {
-                $fotoGiziPath = 'storage/' . $pathGizi;
+                $fotoGiziPath = 'uploads/foto_gizi/' . basename($pathGizi); // <--- Perbaikan di sini
                 Log::info('Path gizi yang akan disimpan di DB: ' . $fotoGiziPath);
             }
         }
@@ -174,20 +170,19 @@ class ProductController extends Controller
             Log::info('Proses update foto produk dimulai.');
             if (is_array($fotoPaths)) {
                 foreach ($fotoPaths as $oldFoto) {
-                    $oldPath = str_replace('storage/', 'public/', $oldFoto);
-                    Storage::delete($oldPath);
-                    Log::info('Menghapus foto lama: ' . $oldPath);
+                    Storage::disk('public')->delete($oldFoto);
+                    Log::info('Menghapus foto lama: ' . $oldFoto);
                 }
             }
             $fotoPaths = [];
             foreach ($request->file('foto') as $foto) {
-                $path = $foto->store('foto_produk', 'public');
+                $path = $foto->store('uploads/foto_produk', 'public');
                 Log::info('Path file baru yang disimpan: ' . $path);
                 if (!$path) {
                     Log::error('Gagal menyimpan file foto produk baru.');
                     return back()->withErrors(['foto' => 'Gagal upload file!']);
                 }
-                $fotoPaths[] = 'storage/' . $path;
+                $fotoPaths[] = 'uploads/foto_produk/' . basename($path);
                 Log::info('Path baru yang akan disimpan di DB: ' . end($fotoPaths));
             }
         }
@@ -195,14 +190,14 @@ class ProductController extends Controller
         if ($request->hasFile('foto_gizi')) {
             Log::info('Proses update foto gizi dimulai.');
             if ($product->foto_gizi) {
-                Storage::delete(str_replace('storage/', 'public/', $product->foto_gizi));
+                Storage::disk('public')->delete($product->foto_gizi);
                 Log::info('Menghapus foto gizi lama: ' . $product->foto_gizi);
             }
             $fotoGizi = $request->file('foto_gizi');
-            $pathGizi = $fotoGizi->store('foto_gizi', 'public');
+            $pathGizi = $fotoGizi->store('uploads/foto_gizi', 'public');
             Log::info('Path file gizi baru yang disimpan: ' . $pathGizi);
             if ($pathGizi) {
-                $validated['foto_gizi'] = 'storage/' . $pathGizi;
+                $validated['foto_gizi'] = 'uploads/foto_gizi/' . basename($pathGizi);
                 Log::info('Path gizi baru yang akan disimpan di DB: ' . $validated['foto_gizi']);
             }
         }
@@ -236,31 +231,26 @@ class ProductController extends Controller
     {
         $product = Product::findOrFail($id);
 
-        // Simpan nama dan kode produk untuk log sebelum hapus
         $nama_produk = $product->nama_produk;
         $kode_produk = $product->kode_produk;
 
-        // Hapus foto produk jika ada
         if (is_array($product->foto)) {
             foreach ($product->foto as $fotoPath) {
-                $path = str_replace('storage/', 'public/', $fotoPath);
-                Storage::delete($path);
+                Storage::disk('public')->delete($fotoPath);
             }
         }
 
-        // Hapus foto gizi jika ada
         if ($product->foto_gizi) {
-            Storage::delete(str_replace('storage/', 'public/', $product->foto_gizi));
+            Storage::disk('public')->delete($product->foto_gizi);
         }
 
         $product->delete();
 
-        // LOG AKTIVITAS ADMIN
         LogAktivitas::create([
             'user_id'   => Auth::id(),
             'role'      => Auth::user()->role ?? 'admin',
             'aksi'      => 'hapus_produk',
-            'kategori'  => 'produk', // <=== ini ditambahkan
+            'kategori'  => 'produk',
             'deskripsi' => 'Hapus produk: ' . $nama_produk . ' (Kode: ' . $kode_produk . ')',
             'ip_address'=> request()->ip(),
         ]);
@@ -315,22 +305,20 @@ class ProductController extends Controller
         $fotoPaths = [];
         if ($request->hasFile('foto')) {
             foreach ($request->file('foto') as $foto) {
-                $namaFile = time() . '_' . uniqid() . '.' . $foto->getClientOriginalExtension();
-                $path = $foto->storeAs('foto_produk', $namaFile);
+                $path = $foto->store('uploads/foto_produk', 'public');
                 if (!$path) {
                     return response()->json(['error' => 'Gagal upload foto!'], 500);
                 }
-                $fotoPaths[] = 'storage/foto_produk/' . $namaFile;
+                $fotoPaths[] = 'uploads/foto_produk/' . basename($path);
             }
         }
 
         $fotoGiziPath = null;
         if ($request->hasFile('foto_gizi')) {
             $fotoGizi = $request->file('foto_gizi');
-            $namaFileGizi = time() . '_gizi_' . uniqid() . '.' . $fotoGizi->getClientOriginalExtension();
-            $pathGizi = $fotoGizi->storeAs('foto_gizi', $namaFileGizi);
+            $pathGizi = $fotoGizi->store('uploads/foto_gizi', 'public');
             if ($pathGizi) {
-                $fotoGiziPath = 'storage/foto_gizi/' . $namaFileGizi;
+                $fotoGiziPath = 'uploads/foto_gizi/' . basename($pathGizi);
             }
         }
 
@@ -356,19 +344,12 @@ class ProductController extends Controller
 
         return response()->json([
             'success' => true,
-            'produk'      => $product,
-            'persen_akg'  => $product->persenAkg(),
-            'is_sehat'    => $product->isSehat(),
+            'produk'        => $product,
+            'persen_akg'    => $product->persenAkg(),
+            'is_sehat'      => $product->isSehat(),
         ]);
     }
 
-    /**
-     * Mengambil teks dari gambar menggunakan Tesseract OCR.
-     * Metode ini menerima file foto dan mengembalikan data nutrisi yang diparsing.
-     *
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function extractTextFromImage(Request $request)
     {
         $request->validate([
@@ -381,8 +362,8 @@ class ProductController extends Controller
         try {
             $ocr = (new TesseractOCR($fullPath))
                 ->lang('ind')
-                ->psm(6) // Pilihan PSM yang baik untuk teks yang rapi. Coba 3 atau 4 jika 6 tidak optimal.
-                ->oem(1) // Wajib 1 untuk menggunakan LSTM engine secara efektif (membutuhkan tessdata_best/fast)
+                ->psm(6)
+                ->oem(1)
                 ->run();
 
             \Log::info('[OCR RAW]', ['ocr_raw' => $ocr]);
@@ -442,21 +423,16 @@ class ProductController extends Controller
             if (preg_match($regex, $text, $matches)) {
                 $value = (float)$matches[1];
 
-                // --- Penyesuaian Mikro Khusus untuk Lemak Jenuh ---
-                // Jika "lemak jenuh" terbaca sebagai 25 (integer tanpa desimal),
-                // dan kita tahu ini adalah kasus khusus dari 2.5 pada label.
                 if ($nutrisi === 'lemak_jenuh' && $value === 25.0 && strpos($text, 'lemak jenuh') !== false) {
-                    $result[$nutrisi] = 2.5; // Koreksi secara spesifik ke 2.5
+                    $result[$nutrisi] = 2.5;
                 } else {
                     $result[$nutrisi] = $value;
                 }
-                // --- Akhir Penyesuaian Mikro ---
 
-                \Log::info("Parsed $nutrisi: " . $result[$nutrisi]); // Log dengan nilai yang sudah dikoreksi
+                \Log::info("Parsed $nutrisi: " . $result[$nutrisi]);
             }
         }
 
-        // Final cleanup: Pastikan semua nilai null atau negatif diatur ke 0
         foreach ($result as $k => $v) {
             if ($v === null || $v < 0) {
                 $result[$k] = 0;
@@ -465,6 +441,4 @@ class ProductController extends Controller
 
         return $result;
     }
-
 }
-
