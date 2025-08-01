@@ -75,13 +75,13 @@ class ProductController extends Controller
             Log::info('Proses upload foto produk dimulai.');
             foreach ($request->file('foto') as $foto) {
                 // Simpan file langsung di direktori public/uploads/foto_produk
-                $path = $foto->store('uploads/foto_produk', 'public');
+                $path = $foto->store('foto_produk', 'public');
                 Log::info('Path file yang disimpan: ' . $path);
                 if (!$path) {
                     Log::error('Gagal menyimpan file foto produk.');
                     return back()->withErrors(['foto' => 'Gagal upload file!']);
                 }
-                $fotoPaths[] = 'uploads/foto_produk/' . basename($path); // <--- Perbaikan di sini
+                $fotoPaths[] = 'storage/' . $path;
                 Log::info('Path yang akan disimpan di DB: ' . end($fotoPaths));
             }
         }
@@ -90,11 +90,10 @@ class ProductController extends Controller
         if ($request->hasFile('foto_gizi')) {
             Log::info('Proses upload foto gizi dimulai.');
             $fotoGizi = $request->file('foto_gizi');
-            // Simpan file gizi langsung di direktori public/uploads/foto_gizi
-            $pathGizi = $fotoGizi->store('uploads/foto_gizi', 'public');
+            $pathGizi = $fotoGizi->store('foto_gizi', 'public');
             Log::info('Path file gizi yang disimpan: ' . $pathGizi);
             if ($pathGizi) {
-                $fotoGiziPath = 'uploads/foto_gizi/' . basename($pathGizi); // <--- Perbaikan di sini
+                $fotoGiziPath = 'storage/' . $pathGizi;
                 Log::info('Path gizi yang akan disimpan di DB: ' . $fotoGiziPath);
             }
         }
@@ -176,13 +175,13 @@ class ProductController extends Controller
             }
             $fotoPaths = [];
             foreach ($request->file('foto') as $foto) {
-                $path = $foto->store('uploads/foto_produk', 'public');
+                $path = $foto->store('foto_produk', 'public');
                 Log::info('Path file baru yang disimpan: ' . $path);
                 if (!$path) {
                     Log::error('Gagal menyimpan file foto produk baru.');
                     return back()->withErrors(['foto' => 'Gagal upload file!']);
                 }
-                $fotoPaths[] = 'uploads/foto_produk/' . basename($path);
+                $fotoPaths[] = 'storage/' . $path;
                 Log::info('Path baru yang akan disimpan di DB: ' . end($fotoPaths));
             }
         }
@@ -194,7 +193,7 @@ class ProductController extends Controller
                 Log::info('Menghapus foto gizi lama: ' . $product->foto_gizi);
             }
             $fotoGizi = $request->file('foto_gizi');
-            $pathGizi = $fotoGizi->store('uploads/foto_gizi', 'public');
+            $pathGizi = $fotoGizi->store('foto_gizi', 'public');
             Log::info('Path file gizi baru yang disimpan: ' . $pathGizi);
             if ($pathGizi) {
                 $validated['foto_gizi'] = 'uploads/foto_gizi/' . basename($pathGizi);
@@ -305,20 +304,20 @@ class ProductController extends Controller
         $fotoPaths = [];
         if ($request->hasFile('foto')) {
             foreach ($request->file('foto') as $foto) {
-                $path = $foto->store('uploads/foto_produk', 'public');
+                $path = $foto->store('foto_produk', 'public');
                 if (!$path) {
                     return response()->json(['error' => 'Gagal upload foto!'], 500);
                 }
-                $fotoPaths[] = 'uploads/foto_produk/' . basename($path);
+                $fotoPaths[] = 'storage/' . $path;
             }
         }
 
         $fotoGiziPath = null;
         if ($request->hasFile('foto_gizi')) {
             $fotoGizi = $request->file('foto_gizi');
-            $pathGizi = $fotoGizi->store('uploads/foto_gizi', 'public');
+            $pathGizi = $fotoGizi->store('foto_gizi', 'public');
             if ($pathGizi) {
-                $fotoGiziPath = 'uploads/foto_gizi/' . basename($pathGizi);
+                $fotoGiziPath = 'storage/' . $pathGizi;
             }
         }
 

@@ -14,6 +14,7 @@ return [
             'report' => false,
         ],
 
+
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),
@@ -21,6 +22,10 @@ return [
             'visibility' => 'public',
             'throw' => false,
             'report' => false,
+        ],
+
+        'links' => [
+            public_path('storage') => storage_path('app/public'),
         ],
 
         's3' => [
