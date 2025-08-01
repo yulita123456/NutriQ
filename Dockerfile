@@ -33,6 +33,11 @@ COPY . /var/www/html
 # Atur direktori kerja
 WORKDIR /var/www/html
 
+# --- TAMBAHAN KRUSIAL UNTUK BUILD LARAVEL ---
+# Set environment variables untuk fase build. Ini akan mencegah error konfigurasi.
+ENV APP_ENV=production
+ENV APP_DEBUG=false
+
 # Instal Composer dan NPM dependencies dan build frontend
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer && \
     composer install --no-dev --optimize-autoloader --no-interaction && \
