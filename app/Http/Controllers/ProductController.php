@@ -68,7 +68,6 @@ class ProductController extends Controller
             'foto_gizi'     => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
-        // Tambahkan blok ini untuk memastikan nilai null menjadi 0
         $nutritionKeys = ['kalori', 'lemak_total', 'lemak_jenuh', 'protein', 'gula', 'karbohidrat', 'garam'];
         foreach ($nutritionKeys as $key) {
             if (empty($validated[$key])) {
@@ -78,24 +77,29 @@ class ProductController extends Controller
 
         $fotoPaths = [];
         if ($request->hasFile('foto')) {
+            Log::info('Proses upload foto produk dimulai.');
             foreach ($request->file('foto') as $foto) {
-                $namaFile = time() . '_' . uniqid() . '.' . $foto->getClientOriginalExtension();
-                $path = $foto->storeAs('foto_produk', $namaFile);
+                // Menggunakan store() tanpa storeAs() untuk mendapatkan path yang relatif ke disk
+                $path = $foto->store('foto_produk', 'public');
+                Log::info('Path file yang disimpan: ' . $path);
                 if (!$path) {
+                    Log::error('Gagal menyimpan file foto produk.');
                     return back()->withErrors(['foto' => 'Gagal upload file!']);
                 }
-                $fotoPaths[] = 'storage/foto_produk/' . $namaFile;
+                $fotoPaths[] = 'storage/' . $path; // Laravel secara default menggunakan disk 'public'
+                Log::info('Path yang akan disimpan di DB: ' . end($fotoPaths));
             }
         }
 
-        // Simpan foto gizi jika ada
         $fotoGiziPath = null;
         if ($request->hasFile('foto_gizi')) {
+            Log::info('Proses upload foto gizi dimulai.');
             $fotoGizi = $request->file('foto_gizi');
-            $namaFileGizi = time() . '_gizi_' . uniqid() . '.' . $fotoGizi->getClientOriginalExtension();
-            $pathGizi = $fotoGizi->storeAs('foto_gizi', $namaFileGizi);
+            $pathGizi = $fotoGizi->store('foto_gizi', 'public');
+            Log::info('Path file gizi yang disimpan: ' . $pathGizi);
             if ($pathGizi) {
-                $fotoGiziPath = 'storage/foto_gizi/' . $namaFileGizi;
+                $fotoGiziPath = 'storage/' . $pathGizi;
+                Log::info('Path gizi yang akan disimpan di DB: ' . $fotoGiziPath);
             }
         }
 
@@ -104,13 +108,13 @@ class ProductController extends Controller
         $validated['status'] = 'approved';
 
         $product = Product::create($validated);
+        Log::info('Produk baru berhasil dibuat dengan ID: ' . $product->id);
 
-        // === LOG AKTIVITAS INPUT PRODUK OLEH ADMIN ===
         LogAktivitas::create([
             'user_id'   => Auth::id(),
             'role'      => Auth::user()->role ?? 'admin',
             'aksi'      => 'input_produk',
-            'kategori'  => 'produk', // <=== ini ditambahkan
+            'kategori'  => 'produk',
             'deskripsi' => 'Input produk: ' . $product->nama_produk . ' (Kode: ' . $product->kode_produk . ')',
             'ip_address'=> $request->ip(),
         ]);
@@ -149,8 +153,6 @@ class ProductController extends Controller
             'foto_gizi'     => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
-        // Tambahkan blok ini untuk memastikan nilai null menjadi 0
-        // dan menangani jika checkbox info gizi tidak dicentang
         $nutritionKeys = ['kalori', 'lemak_total', 'lemak_jenuh', 'protein', 'gula', 'karbohidrat', 'garam'];
         if ($request->has('add_nutrition_toggle')) {
             foreach ($nutritionKeys as $key) {
@@ -159,59 +161,56 @@ class ProductController extends Controller
                 }
             }
         } else {
-            // Jika checkbox tidak dicentang, reset semua nilai gizi ke 0
             foreach ($nutritionKeys as $key) {
                 $validated[$key] = 0;
             }
         }
 
         $product = Product::findOrFail($id);
-
-        // Simpan value sebelum update untuk log perubahan
         $oldData = $product->toArray();
 
         $fotoPaths = $product->foto ?? [];
         if ($request->hasFile('foto')) {
-            // Hapus foto lama
+            Log::info('Proses update foto produk dimulai.');
             if (is_array($fotoPaths)) {
                 foreach ($fotoPaths as $oldFoto) {
                     $oldPath = str_replace('storage/', 'public/', $oldFoto);
                     Storage::delete($oldPath);
+                    Log::info('Menghapus foto lama: ' . $oldPath);
                 }
             }
-
             $fotoPaths = [];
             foreach ($request->file('foto') as $foto) {
-                $namaFile = time() . '_' . uniqid() . '.' . $foto->getClientOriginalExtension();
-                $path = $foto->storeAs('foto_produk', $namaFile);
+                $path = $foto->store('foto_produk', 'public');
+                Log::info('Path file baru yang disimpan: ' . $path);
                 if (!$path) {
+                    Log::error('Gagal menyimpan file foto produk baru.');
                     return back()->withErrors(['foto' => 'Gagal upload file!']);
                 }
-                $fotoPaths[] = 'storage/foto_produk/' . $namaFile;
+                $fotoPaths[] = 'storage/' . $path;
+                Log::info('Path baru yang akan disimpan di DB: ' . end($fotoPaths));
+            }
+        }
+
+        if ($request->hasFile('foto_gizi')) {
+            Log::info('Proses update foto gizi dimulai.');
+            if ($product->foto_gizi) {
+                Storage::delete(str_replace('storage/', 'public/', $product->foto_gizi));
+                Log::info('Menghapus foto gizi lama: ' . $product->foto_gizi);
+            }
+            $fotoGizi = $request->file('foto_gizi');
+            $pathGizi = $fotoGizi->store('foto_gizi', 'public');
+            Log::info('Path file gizi baru yang disimpan: ' . $pathGizi);
+            if ($pathGizi) {
+                $validated['foto_gizi'] = 'storage/' . $pathGizi;
+                Log::info('Path gizi baru yang akan disimpan di DB: ' . $validated['foto_gizi']);
             }
         }
 
         $validated['foto'] = $fotoPaths;
-
-        // Handle foto gizi
-        if ($request->hasFile('foto_gizi')) {
-            // Hapus foto gizi lama
-            if ($product->foto_gizi) {
-                Storage::delete(str_replace('storage/', 'public/', $product->foto_gizi));
-            }
-
-            $fotoGizi = $request->file('foto_gizi');
-            $namaFileGizi = time() . '_gizi_' . uniqid() . '.' . $fotoGizi->getClientOriginalExtension();
-            $pathGizi = $fotoGizi->storeAs('foto_gizi', $namaFileGizi);
-            if ($pathGizi) {
-                $validated['foto_gizi'] = 'storage/foto_gizi/' . $namaFileGizi;
-            }
-        }
-
         $product->update($validated);
+        Log::info('Produk dengan ID: ' . $product->id . ' berhasil diupdate.');
 
-        // === LOG AKTIVITAS ADMIN ===
-        // Deteksi perubahan field penting (misal: harga, stok, nama)
         $changes = [];
         foreach (['nama_produk', 'harga', 'stock', 'kategori'] as $field) {
             if ($oldData[$field] != $validated[$field]) {
@@ -224,7 +223,7 @@ class ProductController extends Controller
             'user_id'   => Auth::id(),
             'role'      => Auth::user()->role ?? 'admin',
             'aksi'      => 'edit_produk',
-            'kategori'  => 'produk', // <=== ini ditambahkan
+            'kategori'  => 'produk',
             'deskripsi' => 'Edit produk: ' . $product->nama_produk . ' (Kode: ' . $product->kode_produk . ')' . $changesStr,
             'ip_address'=> $request->ip(),
         ]);

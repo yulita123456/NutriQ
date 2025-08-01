@@ -1,7 +1,9 @@
 #!/bin/sh
 
-# Pastikan symlink storage terbuat atau sudah ada
-php artisan storage:link
+# Cek apakah symlink sudah ada, jika belum buat.
+if [ ! -L /var/www/html/public/storage ]; then
+    php artisan storage:link
+fi
 
 # Jalankan migrasi database
 php artisan migrate --force
