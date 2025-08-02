@@ -10,9 +10,6 @@ use App\Models\LogAktivitas;
 use Illuminate\Support\Facades\Auth;
 use thiagoalessio\TesseractOCR\TesseractOCR;
 
-
-
-
 class ProductController extends Controller
 {
     public function index(Request $request)
@@ -44,77 +41,67 @@ class ProductController extends Controller
         return view('admin.products.create');
     }
 
-/**
- * Menyimpan produk baru yang diinput oleh Admin dengan logging detail.
- *
- * @param  \Illuminate\Http\Request  $request
- * @return \Illuminate\Http\RedirectResponse
- */
-public function storeByAdmin(Request $request)
-{
-    $validated = $request->validate([
-        'kode_produk'   => 'required|unique:product,kode_produk',
-        'nama_produk'   => 'required',
-        'kategori'      => 'required|in:minuman,snack dan cemilan,makanan instan',
-        'stock'         => 'required|integer',
-        'harga'         => 'required|integer|min:0',
-        'kalori'        => 'nullable|integer',
-        'lemak_total'   => 'nullable|numeric',
-        'lemak_jenuh'   => 'nullable|numeric',
-        'protein'       => 'nullable|numeric',
-        'gula'          => 'nullable|numeric',
-        'karbohidrat'   => 'nullable|numeric',
-        'garam'         => 'nullable|numeric',
-        'foto.*'        => 'image|mimes:jpg,jpeg,png|max:2048',
-        'foto_gizi'     => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-    ]);
+    public function storeByAdmin(Request $request)
+    {
+        $validated = $request->validate([
+            'kode_produk'   => 'required|unique:product,kode_produk',
+            'nama_produk'   => 'required',
+            'kategori'      => 'required|in:minuman,snack dan cemilan,makanan instan',
+            'stock'         => 'required|integer',
+            'harga'         => 'required|integer|min:0',
+            'kalori'        => 'nullable|integer',
+            'lemak_total'   => 'nullable|numeric',
+            'lemak_jenuh'   => 'nullable|numeric',
+            'protein'       => 'nullable|numeric',
+            'gula'          => 'nullable|numeric',
+            'karbohidrat'   => 'nullable|numeric',
+            'garam'         => 'nullable|numeric',
+            'foto.*'        => 'image|mimes:jpg,jpeg,png|max:2048',
+            'foto_gizi'     => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+        ]);
 
-    $nutritionKeys = ['kalori', 'lemak_total', 'lemak_jenuh', 'protein', 'gula', 'karbohidrat', 'garam'];
-    foreach ($nutritionKeys as $key) {
-        if (empty($validated[$key])) {
-            $validated[$key] = 0;
-        }
-    }
-
-    $fotoPaths = [];
-    if ($request->hasFile('foto')) {
-        foreach ($request->file('foto') as $foto) {
-            // Menyimpan file ke disk 'public', yang sekarang root-nya ada di public/uploads
-            $path = $foto->store('foto_produk', 'public');
-            if ($path) {
-                // PERUBAHAN KUNCI: Path yang disimpan ke DB sekarang adalah 'uploads/...'
-                $fotoPaths[] = 'uploads/' . $path;
+        $nutritionKeys = ['kalori', 'lemak_total', 'lemak_jenuh', 'protein', 'gula', 'karbohidrat', 'garam'];
+        foreach ($nutritionKeys as $key) {
+            if (empty($validated[$key])) {
+                $validated[$key] = 0;
             }
         }
-    }
 
-    $fotoGiziPath = null;
-    if ($request->hasFile('foto_gizi')) {
-        // Menyimpan file ke disk 'public', yang sekarang root-nya ada di public/uploads
-        $pathGizi = $request->file('foto_gizi')->store('foto_gizi', 'public');
-        if ($pathGizi) {
-            // PERUBAHAN KUNCI: Path yang disimpan ke DB sekarang adalah 'uploads/...'
-            $fotoGiziPath = 'uploads/' . $pathGizi;
+        $fotoPaths = [];
+        if ($request->hasFile('foto')) {
+            foreach ($request->file('foto') as $foto) {
+                $path = $foto->store('foto_produk', 'public');
+                if ($path) {
+                    $fotoPaths[] = 'uploads/' . $path;
+                }
+            }
         }
+
+        $fotoGiziPath = null;
+        if ($request->hasFile('foto_gizi')) {
+            $pathGizi = $request->file('foto_gizi')->store('foto_gizi', 'public');
+            if ($pathGizi) {
+                $fotoGiziPath = 'uploads/' . $pathGizi;
+            }
+        }
+
+        $validated['foto'] = $fotoPaths;
+        $validated['foto_gizi'] = $fotoGiziPath;
+        $validated['status'] = 'approved';
+
+        $product = Product::create($validated);
+
+        LogAktivitas::create([
+            'user_id'   => Auth::id(),
+            'role'      => Auth::user()->role ?? 'admin',
+            'aksi'      => 'input_produk',
+            'kategori'  => 'produk',
+            'deskripsi' => 'Input produk: ' . $product->nama_produk . ' (Kode: ' . $product->kode_produk . ')',
+            'ip_address'=> $request->ip(),
+        ]);
+
+        return redirect()->route('admin.produk.index')->with('success', 'Produk berhasil ditambahkan.');
     }
-
-    $validated['foto'] = $fotoPaths;
-    $validated['foto_gizi'] = $fotoGiziPath;
-    $validated['status'] = 'approved';
-
-    $product = Product::create($validated);
-
-    LogAktivitas::create([
-        'user_id'   => Auth::id(),
-        'role'      => Auth::user()->role ?? 'admin',
-        'aksi'      => 'input_produk',
-        'kategori'  => 'produk',
-        'deskripsi' => 'Input produk: ' . $product->nama_produk . ' (Kode: ' . $product->kode_produk . ')',
-        'ip_address'=> $request->ip(),
-    ]);
-
-    return redirect()->route('admin.produk.index')->with('success', 'Produk berhasil ditambahkan.');
-}
     public function show($id)
     {
         $product = Product::findOrFail($id);
@@ -146,6 +133,9 @@ public function storeByAdmin(Request $request)
             'foto_gizi'     => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
+        $product = Product::findOrFail($id);
+        $oldData = $product->toArray();
+
         $nutritionKeys = ['kalori', 'lemak_total', 'lemak_jenuh', 'protein', 'gula', 'karbohidrat', 'garam'];
         if ($request->has('add_nutrition_toggle')) {
             foreach ($nutritionKeys as $key) {
@@ -159,49 +149,37 @@ public function storeByAdmin(Request $request)
             }
         }
 
-        $product = Product::findOrFail($id);
-        $oldData = $product->toArray();
-
-        $fotoPaths = $product->foto ?? [];
         if ($request->hasFile('foto')) {
-            Log::info('Proses update foto produk dimulai.');
-            if (is_array($fotoPaths)) {
-                foreach ($fotoPaths as $oldFoto) {
-                    Storage::disk('public')->delete($oldFoto);
-                    Log::info('Menghapus foto lama: ' . $oldFoto);
+            if (is_array($product->foto)) {
+                foreach ($product->foto as $oldFotoPath) {
+                    $pathToDelete = str_replace(['uploads/', 'storage/'], '', $oldFotoPath);
+                    Storage::disk('public')->delete($pathToDelete);
                 }
             }
+
             $fotoPaths = [];
             foreach ($request->file('foto') as $foto) {
                 $path = $foto->store('foto_produk', 'public');
-                Log::info('Path file baru yang disimpan: ' . $path);
-                if (!$path) {
-                    Log::error('Gagal menyimpan file foto produk baru.');
-                    return back()->withErrors(['foto' => 'Gagal upload file!']);
+                if ($path) {
+                    $fotoPaths[] = 'uploads/' . $path;
                 }
-                $fotoPaths[] = 'storage/' . $path;
-                Log::info('Path baru yang akan disimpan di DB: ' . end($fotoPaths));
             }
+            $validated['foto'] = $fotoPaths;
         }
 
         if ($request->hasFile('foto_gizi')) {
-            Log::info('Proses update foto gizi dimulai.');
             if ($product->foto_gizi) {
-                Storage::disk('public')->delete($product->foto_gizi);
-                Log::info('Menghapus foto gizi lama: ' . $product->foto_gizi);
+                $pathToDelete = str_replace(['uploads/', 'storage/'], '', $product->foto_gizi);
+                Storage::disk('public')->delete($pathToDelete);
             }
-            $fotoGizi = $request->file('foto_gizi');
-            $pathGizi = $fotoGizi->store('foto_gizi', 'public');
-            Log::info('Path file gizi baru yang disimpan: ' . $pathGizi);
+
+            $pathGizi = $request->file('foto_gizi')->store('foto_gizi', 'public');
             if ($pathGizi) {
-                $validated['foto_gizi'] = 'uploads/foto_gizi/' . basename($pathGizi);
-                Log::info('Path gizi baru yang akan disimpan di DB: ' . $validated['foto_gizi']);
+                $validated['foto_gizi'] = 'uploads/' . $pathGizi;
             }
         }
 
-        $validated['foto'] = $fotoPaths;
         $product->update($validated);
-        Log::info('Produk dengan ID: ' . $product->id . ' berhasil diupdate.');
 
         $changes = [];
         foreach (['nama_produk', 'harga', 'stock', 'kategori'] as $field) {
@@ -233,12 +211,14 @@ public function storeByAdmin(Request $request)
 
         if (is_array($product->foto)) {
             foreach ($product->foto as $fotoPath) {
-                Storage::disk('public')->delete($fotoPath);
+                $pathToDelete = str_replace(['uploads/', 'storage/'], '', $fotoPath);
+                Storage::disk('public')->delete($pathToDelete);
             }
         }
 
         if ($product->foto_gizi) {
-            Storage::disk('public')->delete($product->foto_gizi);
+            $pathToDelete = str_replace(['uploads/', 'storage/'], '', $product->foto_gizi);
+            Storage::disk('public')->delete($pathToDelete);
         }
 
         $product->delete();
@@ -282,52 +262,6 @@ public function storeByAdmin(Request $request)
         return response()->json($products);
     }
 
-    public function storeByUser(Request $request)
-    {
-        $validated = $request->validate([
-            'kode_produk' => 'required|unique:product,kode_produk',
-            'nama_produk' => 'required',
-            'kategori' => 'required|in:minuman,snack dan cemilan,makanan instan',
-            'kalori' => 'required|integer',
-            'lemak_total' => 'required|numeric',
-            'lemak_jenuh' => 'required|numeric',
-            'protein' => 'required|numeric',
-            'gula' => 'required|numeric',
-            'karbohidrat' => 'required|numeric',
-            'garam' => 'required|numeric',
-            'foto.*' => 'image|mimes:jpg,jpeg,png|max:2048',
-            'foto_gizi' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-        ]);
-
-        $fotoPaths = [];
-        if ($request->hasFile('foto')) {
-            foreach ($request->file('foto') as $foto) {
-                $path = $foto->store('foto_produk', 'public');
-                if (!$path) {
-                    return response()->json(['error' => 'Gagal upload foto!'], 500);
-                }
-                $fotoPaths[] = 'storage/' . $path;
-            }
-        }
-
-        $fotoGiziPath = null;
-        if ($request->hasFile('foto_gizi')) {
-            $fotoGizi = $request->file('foto_gizi');
-            $pathGizi = $fotoGizi->store('foto_gizi', 'public');
-            if ($pathGizi) {
-                $fotoGiziPath = 'storage/' . $pathGizi;
-            }
-        }
-
-        $validated['foto'] = $fotoPaths;
-        $validated['foto_gizi'] = $fotoGiziPath;
-        $validated['status'] = 'pending';
-
-        Product::create($validated);
-
-        return response()->json(['message' => 'Produk berhasil diajukan, menunggu persetujuan admin.'], 201);
-    }
-
     public function getByKode($kode)
     {
         $product = Product::where('kode_produk', $kode)->first();
@@ -354,7 +288,8 @@ public function storeByAdmin(Request $request)
         ]);
 
         $path = $request->file('foto')->store('ocr_gizi_tmp', 'public');
-        $fullPath = storage_path('app/public/' . $path);
+
+        $fullPath = Storage::disk('public')->path($path);
 
         try {
             $ocr = (new TesseractOCR($fullPath))
