@@ -3,7 +3,8 @@
     <h1 class="text-3xl font-bold text-gray-800 mb-0">Daftar Produk</h1>
 @endsection
 @section('content')
-<div class="py-6">
+{{-- Menambahkan x-data di sini untuk mengontrol state modal --}}
+<div class="py-6" x-data="{ showModal: false, modalImageUrl: '' }">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-7">
         <div>
             <p class="text-gray-500">Kelola seluruh produk kemasan aplikasi NutriQ.</p>
@@ -32,8 +33,8 @@
         <div class="flex flex-col">
             <label for="search" class="block text-sm text-gray-600 mb-1">Cari Nama Produk</label>
             <input type="text" id="search" name="search" value="{{ request('search') }}"
-                placeholder="Cari produk..."
-                class="border border-gray-300 rounded px-3 py-2 text-sm focus:ring focus:ring-green-100">
+                   placeholder="Cari produk..."
+                   class="border border-gray-300 rounded px-3 py-2 text-sm focus:ring focus:ring-green-100">
         </div>
         <div class="flex flex-col">
             <label for="kategori" class="block text-sm text-gray-600 mb-1">Kategori</label>
@@ -47,24 +48,24 @@
         <div class="flex flex-col">
             <label for="harga_min" class="block text-sm text-gray-600 mb-1">Harga Min</label>
             <input type="number" id="harga_min" name="harga_min" value="{{ request('harga_min') }}"
-                placeholder="Min"
-                class="border border-gray-300 rounded px-3 py-2 text-sm">
+                   placeholder="Min"
+                   class="border border-gray-300 rounded px-3 py-2 text-sm">
         </div>
         <div class="flex flex-col">
             <label for="harga_max" class="block text-sm text-gray-600 mb-1">Harga Max</label>
             <input type="number" id="harga_max" name="harga_max" value="{{ request('harga_max') }}"
-                placeholder="Max"
-                class="border border-gray-300 rounded px-3 py-2 text-sm">
+                   placeholder="Max"
+                   class="border border-gray-300 rounded px-3 py-2 text-sm">
         </div>
         <div class="flex flex-col justify-end">
             <button type="submit"
-                class="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded-lg shadow">
+                    class="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded-lg shadow">
                 Filter
             </button>
         </div>
         <div class="flex flex-col justify-end">
             <a href="{{ route('admin.produk.index') }}"
-                class="text-sm text-gray-600 underline hover:text-green-600 transition">
+               class="text-sm text-gray-600 underline hover:text-green-600 transition">
                 Reset
             </a>
         </div>
@@ -93,32 +94,38 @@
                         <td class="p-3 text-left align-middle">{{ ucfirst($p->stock) }}</td>
                         <td class="p-3 text-left align-middle">Rp{{ number_format($p->harga, 0, ',', '.') }}</td>
                         <td class="p-3 text-left align-middle">
+                            {{-- ==================================================================== --}}
+                            {{-- PERUBAHAN DI SINI --}}
+                            {{-- ==================================================================== --}}
                             @if($p->foto && count($p->foto) > 0)
-                                <img src="{{ asset($p->foto[0]) }}" alt="{{ $p->nama_produk }}"
-                                     class="w-14 h-14 object-cover rounded shadow border border-gray-200" />
+                                <button type="button" @click="showModal = true; modalImageUrl = '{{ asset($p->foto[0]) }}'">
+                                    <img src="{{ asset($p->foto[0]) }}" alt="{{ $p->nama_produk }}"
+                                         class="w-14 h-14 object-cover rounded shadow border border-gray-200 cursor-pointer hover:scale-105 transition" />
+                                </button>
                             @else
                                 <span class="text-gray-400 italic">Tidak ada foto</span>
                             @endif
+                            {{-- ==================================================================== --}}
                         </td>
                         <td class="p-3 text-left align-middle">
                             <div class="flex gap-2">
                                 <a href="{{ route('admin.produk.show', $p->id) }}"
-                                    class="inline-flex items-center justify-center bg-blue-50 hover:bg-blue-100 text-blue-700 p-2 rounded transition"
-                                    title="Detail">
+                                   class="inline-flex items-center justify-center bg-blue-50 hover:bg-blue-100 text-blue-700 p-2 rounded transition"
+                                   title="Detail">
                                     <i class="fas fa-info-circle"></i>
                                 </a>
                                 <a href="{{ route('admin.produk.edit', $p->id) }}"
-                                    class="inline-flex items-center justify-center bg-yellow-50 hover:bg-yellow-100 text-yellow-600 p-2 rounded transition"
-                                    title="Edit">
+                                   class="inline-flex items-center justify-center bg-yellow-50 hover:bg-yellow-100 text-yellow-600 p-2 rounded transition"
+                                   title="Edit">
                                     <i class="fas fa-edit"></i>
                                 </a>
                                 <form action="{{ route('admin.produk.destroy', $p->id) }}" method="POST"
-                                    onsubmit="return confirm('Yakin ingin menghapus produk ini?')" class="inline">
+                                      onsubmit="return confirm('Yakin ingin menghapus produk ini?')" class="inline">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit"
-                                        class="inline-flex items-center justify-center bg-red-50 hover:bg-red-100 text-red-600 p-2 rounded transition"
-                                        title="Hapus">
+                                            class="inline-flex items-center justify-center bg-red-50 hover:bg-red-100 text-red-600 p-2 rounded transition"
+                                            title="Hapus">
                                         <i class="fas fa-trash-alt"></i>
                                     </button>
                                 </form>
@@ -138,5 +145,27 @@
     <div class="mt-4">
         {{ $products->withQueryString()->links() }}
     </div>
+
+    {{-- ==================================================================== --}}
+    {{-- MODAL UNTUK PREVIEW GAMBAR DITAMBAHKAN DI SINI --}}
+    {{-- ==================================================================== --}}
+    <div x-show="showModal"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4"
+         style="display: none;">
+        <div @click.away="showModal = false" class="relative bg-white p-4 rounded-lg shadow-xl max-w-2xl max-h-[90vh]">
+            <button @click="showModal = false" class="absolute -top-3 -right-3 bg-red-500 text-white rounded-full h-8 w-8 flex items-center justify-center focus:outline-none hover:bg-red-600 transition">
+                <i class="fas fa-times"></i>
+            </button>
+            <img :src="modalImageUrl" alt="Preview Gambar Produk" class="rounded-lg max-h-[calc(90vh-2rem)]">
+        </div>
+    </div>
+    {{-- ==================================================================== --}}
+
 </div>
 @endsection

@@ -9,7 +9,7 @@
     <div class="max-w-3xl mx-auto bg-white rounded-xl shadow-lg p-8 border border-gray-100">
         <div class="flex items-center mb-8">
             <a href="{{ route('admin.produk.index') }}"
-                class="inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded shadow font-semibold transition mr-3">
+               class="inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded shadow font-semibold transition mr-3">
                 <i class="fas fa-arrow-left mr-2"></i>
                 Kembali
             </a>
@@ -76,15 +76,19 @@
                                 <input type="file" name="foto[]" id="foto_produk" accept="image/*" multiple class="hidden" />
                             </label>
                             <div id="preview-produk" class="flex gap-3 mt-3">
+                                {{-- ==================================================================== --}}
+                                {{-- PERUBAHAN DI SINI --}}
+                                {{-- ==================================================================== --}}
                                 @if ($product->foto && is_array($product->foto))
                                     @foreach ($product->foto as $foto)
-                                        <img src="{{ asset('storage/' . $foto) }}" alt="Foto Produk" class="w-20 h-20 object-cover rounded border border-gray-200 shadow">
+                                        <img src="{{ asset($foto) }}" alt="Foto Produk" class="w-20 h-20 object-cover rounded border border-gray-200 shadow">
                                     @endforeach
                                 @endif
+                                {{-- ==================================================================== --}}
                             </div>
                              @error('foto.*') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
                              <span class="block mt-1 text-xs text-gray-500 leading-relaxed">
-                                <strong>Ukuran file foto maksimal 2MB.</strong>
+                                 <strong>Ukuran file foto maksimal 2MB.</strong>
                             </span>
                         </div>
                     </div>
@@ -115,9 +119,13 @@
                         <input type="file" name="foto_gizi" id="foto_gizi" accept="image/*" class="hidden" />
                     </label>
                     <div id="preview-gizi" class="flex gap-3 mt-3">
+                        {{-- ==================================================================== --}}
+                        {{-- PERUBAHAN DI SINI --}}
+                        {{-- ==================================================================== --}}
                         @if (!empty($product->foto_gizi))
-                            <img src="{{ asset('storage/' . $product->foto_gizi) }}" alt="Foto Gizi" class="w-20 h-20 object-cover rounded border border-green-200 shadow">
+                            <img src="{{ asset($product->foto_gizi) }}" alt="Foto Gizi" class="w-20 h-20 object-cover rounded border border-green-200 shadow">
                         @endif
+                        {{-- ==================================================================== --}}
                     </div>
                     @error('foto_gizi') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
                     <span class="block mt-1 text-xs text-gray-500 leading-relaxed">
@@ -176,6 +184,7 @@
         </form>
     </div>
 </div>
+
 
 @push('scripts')
 <script>
