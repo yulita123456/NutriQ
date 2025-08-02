@@ -1,22 +1,33 @@
 #!/bin/sh
-
-# Script akan berhenti jika ada error. Ini praktik yang baik.
 set -e
 
-# (SANGAT PENTING) Mengubah kepemilikan folder storage agar bisa diisi oleh web server.
+echo "--- Memulai docker-entrypoint.sh (STRATEGI BARU) ---"
+
+# Langkah 1: Pastikan izin folder storage sudah benar SEBELUM membuat link
+echo "Memastikan izin folder storage..."
 chown -R www-data:www-data /var/www/html/storage
+echo "Izin folder storage OK."
 
-# Jalankan migrasi database.
+# Langkah 2: Hapus paksa symlink lama untuk menghindari konflik
+echo "Menghapus symlink lama di public/storage (jika ada)..."
+rm -rf /var/www/html/public/storage
+echo "Symlink lama dihapus."
+
+# Langkah 3: Buat symlink yang baru dan bersih
+echo "Menjalankan php artisan storage:link..."
+php artisan storage:link
+echo "Perintah storage:link selesai."
+
+# Langkah 4: Verifikasi hasil untuk kita lihat di log deploy
+echo "Verifikasi symlink yang baru dibuat:"
+ls -l /var/www/html/public/
+
+# Langkah 5: Jalankan migrasi dan cache
+echo "Menjalankan migrasi dan caching..."
 php artisan migrate --force
-
-# Membersihkan dan membuat cache untuk produksi.
-php artisan config:clear
-php artisan route:clear
-php artisan view:clear
-
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 
-# Menjalankan Apache sebagai proses utama.
+echo "--- Selesai setup, menjalankan Apache ---"
 exec apache2-foreground
