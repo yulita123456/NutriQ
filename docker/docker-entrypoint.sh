@@ -1,10 +1,11 @@
 #!/bin/sh
 
+# TAMBAHKAN BARIS INI
+# Mengubah kepemilikan folder storage ke www-data agar bisa diisi oleh web server
+chown -R www-data:www-data /var/www/html/storage
+
 # Jalankan migrasi database
 php artisan migrate --force
-
-# HAPUS BARIS INI:
-# php artisan storage:link
 
 # Hapus cache yang mungkin usang
 php artisan config:clear
