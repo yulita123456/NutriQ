@@ -9,7 +9,17 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\Admin\PengaturanController;
 use App\Http\Controllers\LogAktivitasController;
-use App\Http\Controllers\Auth\AdminForgotPasswordController; // <-- DITAMBAHKAN
+use App\Http\Controllers\Auth\AdminForgotPasswordController;
+
+// ====================================================================
+// KODE BARU DITAMBAHKAN DI SINI
+// ====================================================================
+use Illuminate\Support\Facades\File;
+use Illuminate\Http\Request;
+// ====================================================================
+// AKHIR DARI KODE BARU
+// ====================================================================
+
 
 // Halaman depan
 Route::redirect('/', '/login');
@@ -86,36 +96,31 @@ Route::get('/finish', function () {
     return view('midtrans.finish');
 });
 
-// !!! INGAT HAPUS ROUTE INI SETELAH SELESAI DEBUG !!!
-Route::get('/debug-storage', function () {
-    $storagePath = storage_path('app/public');
-    $produkPath = $storagePath . '/foto_produk';
-    $output = [];
+// ====================================================================
+// KODE BARU DITAMBAHKAN DI SINI
+// ====================================================================
+// Route untuk melihat log debug
+Route::get('/lihat-log-debug', function (Request $request) {
+    // Ganti 'kataRahasiaKita' dengan password yang Anda inginkan
+    $password = 'kataRahasiaKita';
 
-    $output['timestamp'] = now()->toDateTimeString();
-    $output['pesan'] = 'Hasil Debug Storage Lengkap';
-    $output['path_storage_app_public'] = $storagePath;
-    $output['apakah_path_ada'] = file_exists($storagePath);
-
-    if ($output['apakah_path_ada']) {
-        $output['pemilik_folder'] = posix_getpwuid(fileowner($storagePath))['name'] ?? 'Tidak bisa dibaca';
-        $output['izin_folder'] = substr(sprintf('%o', fileperms($storagePath)), -4);
-
-        $output['apakah_folder_foto_produk_ada'] = file_exists($produkPath);
-
-        if ($output['apakah_folder_foto_produk_ada']) {
-            $output['pemilik_folder_foto_produk'] = posix_getpwuid(fileowner($produkPath))['name'] ?? 'Tidak bisa dibaca';
-            $output['izin_folder_foto_produk'] = substr(sprintf('%o', fileperms($produkPath)), -4);
-
-            // MENAMBAHKAN KEMAMPUAN UNTUK MELIHAT ISI FOLDER
-            try {
-                $output['isi_folder_foto_produk'] = scandir($produkPath);
-            } catch (\Exception $e) {
-                $output['isi_folder_foto_produk'] = 'Error saat membaca folder: ' . $e->getMessage();
-            }
-        }
+    if ($request->input('password') !== $password) {
+        return response('Akses Ditolak. Gunakan URL ?password=... yang benar.', 403);
     }
 
-    return response()->json($output, 200, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+    $logPath = storage_path('logs/debug.log');
+
+    if (!File::exists($logPath)) {
+        return response('File log (debug.log) belum ada. Coba upload produk terlebih dahulu.', 404);
+    }
+
+    // Menampilkan log dengan format yang mudah dibaca di browser
+    return response('<pre style="white-space: pre-wrap; word-wrap: break-word;">' . htmlspecialchars(File::get($logPath)) . '</pre>', 200)
+          ->header('Content-Type', 'text/html; charset=utf-8');
 });
+// ====================================================================
+// AKHIR DARI KODE BARU
+// ====================================================================
+
+
 require __DIR__.'/auth.php';

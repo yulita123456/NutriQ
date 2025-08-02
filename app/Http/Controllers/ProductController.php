@@ -52,8 +52,8 @@ class ProductController extends Controller
  */
 public function storeByAdmin(Request $request)
 {
-    // Menggunakan error_log() untuk logging yang lebih direct
-    error_log('[DEBUG-NUTRIQ] --- Memulai storeByAdmin ---');
+    // Mengarahkan log ke channel 'debuglog' yang akan menulis ke file 'storage/logs/debug.log'
+    Log::channel('debuglog')->info('--- Memulai storeByAdmin ---');
 
     $validated = $request->validate([
         'kode_produk'   => 'required|unique:product,kode_produk',
@@ -81,37 +81,37 @@ public function storeByAdmin(Request $request)
 
     $fotoPaths = [];
     if ($request->hasFile('foto')) {
-        error_log('[DEBUG-NUTRIQ] [FOTO PRODUK] Request memiliki file `foto`.');
+        Log::channel('debuglog')->info('[FOTO PRODUK] Request memiliki file `foto`.');
         foreach ($request->file('foto') as $index => $foto) {
             if (!$foto->isValid()) {
-                error_log("[DEBUG-NUTRIQ] [FOTO PRODUK - File #{$index}] File tidak valid. Error: " . $foto->getError());
+                Log::channel('debuglog')->error("[FOTO PRODUK - File #{$index}] File tidak valid. Error: " . $foto->getError());
                 continue;
             }
 
             // Ini adalah bagian paling penting
             $path = $foto->store('foto_produk', 'public');
-            error_log("[DEBUG-NUTRIQ] [FOTO PRODUK - File #{$index}] Hasil dari store(): " . ($path ?: 'GAGAL'));
+            Log::channel('debuglog')->info("[FOTO PRODUK - File #{$index}] Hasil dari store(): " . ($path ?: 'GAGAL'));
 
             if ($path) {
                 $fotoPaths[] = 'storage/' . $path;
             } else {
-                error_log("[DEBUG-NUTRIQ] [FOTO PRODUK - File #{$index}] Gagal menyimpan file ke storage.");
+                Log::channel('debuglog')->error("[FOTO PRODUK - File #{$index}] Gagal menyimpan file ke storage.");
             }
         }
     }
 
     $fotoGiziPath = null;
     if ($request->hasFile('foto_gizi')) {
-        error_log('[DEBUG-NUTRIQ] [FOTO GIZI] Request memiliki file `foto_gizi`.');
+        Log::channel('debuglog')->info('[FOTO GIZI] Request memiliki file `foto_gizi`.');
         $fotoGizi = $request->file('foto_gizi');
         if ($fotoGizi->isValid()) {
             $pathGizi = $fotoGizi->store('foto_gizi', 'public');
-            error_log("[DEBUG-NUTRIQ] [FOTO GIZI] Hasil dari store(): " . ($pathGizi ?: 'GAGAL'));
+            Log::channel('debuglog')->info("[FOTO GIZI] Hasil dari store(): " . ($pathGizi ?: 'GAGAL'));
             if ($pathGizi) {
                 $fotoGiziPath = 'storage/' . $pathGizi;
             }
         } else {
-            error_log('[DEBUG-NUTRIQ] [FOTO GIZI] File tidak valid. Error: ' . $fotoGizi->getError());
+            Log::channel('debuglog')->error('[FOTO GIZI] File tidak valid. Error: ' . $fotoGizi->getError());
         }
     }
 
@@ -120,7 +120,7 @@ public function storeByAdmin(Request $request)
     $validated['status'] = 'approved';
 
     $product = Product::create($validated);
-    error_log('[DEBUG-NUTRIQ] Produk baru berhasil dibuat di database dengan ID: ' . $product->id);
+    Log::channel('debuglog')->info('Produk baru berhasil dibuat di database dengan ID: ' . $product->id);
 
     LogAktivitas::create([
         'user_id'   => Auth::id(),
@@ -131,10 +131,10 @@ public function storeByAdmin(Request $request)
         'ip_address'=> $request->ip(),
     ]);
 
-    error_log('[DEBUG-NUTRIQ] --- Selesai storeByAdmin ---');
+    // Menambahkan dua baris baru untuk spasi antar log agar mudah dibaca
+    Log::channel('debuglog')->info('--- Selesai storeByAdmin ---' . "\n\n");
     return redirect()->route('admin.produk.index')->with('success', 'Produk berhasil ditambahkan.');
 }
-
     public function show($id)
     {
         $product = Product::findOrFail($id);
