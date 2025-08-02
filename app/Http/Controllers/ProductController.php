@@ -52,9 +52,6 @@ class ProductController extends Controller
  */
 public function storeByAdmin(Request $request)
 {
-    // Mengarahkan log ke channel 'debuglog' yang akan menulis ke file 'storage/logs/debug.log'
-    Log::channel('debuglog')->info('--- Memulai storeByAdmin ---');
-
     $validated = $request->validate([
         'kode_produk'   => 'required|unique:product,kode_produk',
         'nama_produk'   => 'required',
@@ -81,37 +78,23 @@ public function storeByAdmin(Request $request)
 
     $fotoPaths = [];
     if ($request->hasFile('foto')) {
-        Log::channel('debuglog')->info('[FOTO PRODUK] Request memiliki file `foto`.');
-        foreach ($request->file('foto') as $index => $foto) {
-            if (!$foto->isValid()) {
-                Log::channel('debuglog')->error("[FOTO PRODUK - File #{$index}] File tidak valid. Error: " . $foto->getError());
-                continue;
-            }
-
-            // Ini adalah bagian paling penting
+        foreach ($request->file('foto') as $foto) {
+            // Menyimpan file ke disk 'public', yang sekarang root-nya ada di public/uploads
             $path = $foto->store('foto_produk', 'public');
-            Log::channel('debuglog')->info("[FOTO PRODUK - File #{$index}] Hasil dari store(): " . ($path ?: 'GAGAL'));
-
             if ($path) {
-                $fotoPaths[] = 'storage/' . $path;
-            } else {
-                Log::channel('debuglog')->error("[FOTO PRODUK - File #{$index}] Gagal menyimpan file ke storage.");
+                // PERUBAHAN KUNCI: Path yang disimpan ke DB sekarang adalah 'uploads/...'
+                $fotoPaths[] = 'uploads/' . $path;
             }
         }
     }
 
     $fotoGiziPath = null;
     if ($request->hasFile('foto_gizi')) {
-        Log::channel('debuglog')->info('[FOTO GIZI] Request memiliki file `foto_gizi`.');
-        $fotoGizi = $request->file('foto_gizi');
-        if ($fotoGizi->isValid()) {
-            $pathGizi = $fotoGizi->store('foto_gizi', 'public');
-            Log::channel('debuglog')->info("[FOTO GIZI] Hasil dari store(): " . ($pathGizi ?: 'GAGAL'));
-            if ($pathGizi) {
-                $fotoGiziPath = 'storage/' . $pathGizi;
-            }
-        } else {
-            Log::channel('debuglog')->error('[FOTO GIZI] File tidak valid. Error: ' . $fotoGizi->getError());
+        // Menyimpan file ke disk 'public', yang sekarang root-nya ada di public/uploads
+        $pathGizi = $request->file('foto_gizi')->store('foto_gizi', 'public');
+        if ($pathGizi) {
+            // PERUBAHAN KUNCI: Path yang disimpan ke DB sekarang adalah 'uploads/...'
+            $fotoGiziPath = 'uploads/' . $pathGizi;
         }
     }
 
@@ -120,7 +103,6 @@ public function storeByAdmin(Request $request)
     $validated['status'] = 'approved';
 
     $product = Product::create($validated);
-    Log::channel('debuglog')->info('Produk baru berhasil dibuat di database dengan ID: ' . $product->id);
 
     LogAktivitas::create([
         'user_id'   => Auth::id(),
@@ -131,8 +113,6 @@ public function storeByAdmin(Request $request)
         'ip_address'=> $request->ip(),
     ]);
 
-    // Menambahkan dua baris baru untuk spasi antar log agar mudah dibaca
-    Log::channel('debuglog')->info('--- Selesai storeByAdmin ---' . "\n\n");
     return redirect()->route('admin.produk.index')->with('success', 'Produk berhasil ditambahkan.');
 }
     public function show($id)
