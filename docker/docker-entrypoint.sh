@@ -1,6 +1,5 @@
 #!/bin/sh
 
-# TAMBAHKAN BARIS INI
 # Mengubah kepemilikan folder storage ke www-data agar bisa diisi oleh web server
 chown -R www-data:www-data /var/www/html/storage
 
