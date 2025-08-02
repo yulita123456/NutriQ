@@ -86,4 +86,34 @@ Route::get('/finish', function () {
     return view('midtrans.finish');
 });
 
+// !!! INGAT HAPUS ROUTE INI SETELAH SELESAI DEBUG !!!
+Route::get('/debug-storage', function () {
+    $storagePath = storage_path('app/public');
+    $output = [];
+
+    $output['pesan'] = 'Hasil Debug Storage';
+    $output['path_storage_app_public'] = $storagePath;
+    $output['apakah_path_ada'] = File::exists($storagePath);
+
+    if ($output['apakah_path_ada']) {
+        // Cek pemilik folder
+        $ownerId = fileowner($storagePath);
+        $ownerInfo = posix_getpwuid($ownerId);
+        $output['pemilik_folder'] = $ownerInfo['name'] ?? 'Tidak bisa dibaca';
+
+        // Cek izin folder
+        $output['izin_folder'] = substr(sprintf('%o', fileperms($storagePath)), -4);
+
+        // Cek apakah folder 'foto_produk' ada
+        $produkPath = $storagePath . '/foto_produk';
+        $output['apakah_folder_foto_produk_ada'] = File::exists($produkPath);
+
+         if ($output['apakah_folder_foto_produk_ada']) {
+            $output['pemilik_folder_foto_produk'] = posix_getpwuid(fileowner($produkPath))['name'] ?? 'Tidak bisa dibaca';
+            $output['izin_folder_foto_produk'] = substr(sprintf('%o', fileperms($produkPath)), -4);
+        }
+    }
+
+    return response()->json($output, 200, [], JSON_PRETTY_PRINT);
+});
 require __DIR__.'/auth.php';
