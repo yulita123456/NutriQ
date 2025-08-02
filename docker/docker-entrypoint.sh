@@ -3,6 +3,10 @@
 # Jalankan migrasi database
 php artisan migrate --force
 
+# Buat symlink storage
+php artisan storage:link
+
+
 # Hapus cache yang mungkin usang
 php artisan config:clear
 php artisan route:clear
