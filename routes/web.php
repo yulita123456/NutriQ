@@ -96,31 +96,47 @@ Route::get('/finish', function () {
     return view('midtrans.finish');
 });
 
-// ====================================================================
-// KODE BARU DITAMBAHKAN DI SINI
-// ====================================================================
-// Route untuk melihat log debug
 Route::get('/lihat-log-debug', function (Request $request) {
     // Ganti 'kataRahasiaKita' dengan password yang Anda inginkan
     $password = 'kataRahasiaKita';
 
     if ($request->input('password') !== $password) {
-        return response('Akses Ditolak. Gunakan URL ?password=... yang benar.', 403);
+        return response('Akses Ditolak.', 403);
     }
 
+    $output = '<pre>';
+    $output .= "--- STATUS DEBUG APLIKASI ---\n\n";
+
+    // Cek Symlink
+    $symlinkPath = public_path('storage');
+    $output .= "--- Mengecek Symlink di: " . $symlinkPath . " ---\n";
+    if (file_exists($symlinkPath)) {
+        if (is_link($symlinkPath)) {
+            $output .= "[OK] Status: Symlink Ditemukan.\n";
+            $output .= "[OK] Link mengarah ke: " . readlink($symlinkPath) . "\n";
+        } else {
+            $output .= "[ERROR] Status: Ada file/folder bernama 'storage' di dalam 'public', tapi BUKAN symlink.\n";
+        }
+    } else {
+        $output .= "[ERROR] Status: Symlink 'public/storage' TIDAK DITEMUKAN.\n";
+    }
+    $output .= "\n\n";
+
+
+    // Cek Log File
     $logPath = storage_path('logs/debug.log');
+    $output .= "--- Isi Log dari storage/logs/debug.log ---\n";
 
-    if (!File::exists($logPath)) {
-        return response('File log (debug.log) belum ada. Coba upload produk terlebih dahulu.', 404);
+    if (File::exists($logPath)) {
+        $output .= htmlspecialchars(File::get($logPath));
+    } else {
+        $output .= "File debug.log belum ada. Coba upload produk terlebih dahulu.";
     }
 
-    // Menampilkan log dengan format yang mudah dibaca di browser
-    return response('<pre style="white-space: pre-wrap; word-wrap: break-word;">' . htmlspecialchars(File::get($logPath)) . '</pre>', 200)
+    $output .= '</pre>';
+
+    return response($output, 200)
           ->header('Content-Type', 'text/html; charset=utf-8');
 });
-// ====================================================================
-// AKHIR DARI KODE BARU
-// ====================================================================
-
 
 require __DIR__.'/auth.php';
