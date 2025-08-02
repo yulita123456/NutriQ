@@ -86,5 +86,36 @@ Route::get('/finish', function () {
     return view('midtrans.finish');
 });
 
+// !!! INGAT HAPUS ROUTE INI SETELAH SELESAI DEBUG !!!
+Route::get('/debug-storage', function () {
+    $storagePath = storage_path('app/public');
+    $produkPath = $storagePath . '/foto_produk';
+    $output = [];
 
+    $output['timestamp'] = now()->toDateTimeString();
+    $output['pesan'] = 'Hasil Debug Storage Lengkap';
+    $output['path_storage_app_public'] = $storagePath;
+    $output['apakah_path_ada'] = file_exists($storagePath);
+
+    if ($output['apakah_path_ada']) {
+        $output['pemilik_folder'] = posix_getpwuid(fileowner($storagePath))['name'] ?? 'Tidak bisa dibaca';
+        $output['izin_folder'] = substr(sprintf('%o', fileperms($storagePath)), -4);
+
+        $output['apakah_folder_foto_produk_ada'] = file_exists($produkPath);
+
+        if ($output['apakah_folder_foto_produk_ada']) {
+            $output['pemilik_folder_foto_produk'] = posix_getpwuid(fileowner($produkPath))['name'] ?? 'Tidak bisa dibaca';
+            $output['izin_folder_foto_produk'] = substr(sprintf('%o', fileperms($produkPath)), -4);
+
+            // MENAMBAHKAN KEMAMPUAN UNTUK MELIHAT ISI FOLDER
+            try {
+                $output['isi_folder_foto_produk'] = scandir($produkPath);
+            } catch (\Exception $e) {
+                $output['isi_folder_foto_produk'] = 'Error saat membaca folder: ' . $e->getMessage();
+            }
+        }
+    }
+
+    return response()->json($output, 200, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+});
 require __DIR__.'/auth.php';

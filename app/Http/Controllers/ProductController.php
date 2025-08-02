@@ -44,78 +44,116 @@ class ProductController extends Controller
         return view('admin.products.create');
     }
 
-    public function storeByAdmin(Request $request)
-    {
-        $validated = $request->validate([
-            'kode_produk'   => 'required|unique:product,kode_produk',
-            'nama_produk'   => 'required',
-            'kategori'      => 'required|in:minuman,snack dan cemilan,makanan instan',
-            'stock'         => 'required|integer',
-            'harga'         => 'required|integer|min:0',
-            'kalori'        => 'nullable|integer',
-            'lemak_total'   => 'nullable|numeric',
-            'lemak_jenuh'   => 'nullable|numeric',
-            'protein'       => 'nullable|numeric',
-            'gula'          => 'nullable|numeric',
-            'karbohidrat'   => 'nullable|numeric',
-            'garam'         => 'nullable|numeric',
-            'foto.*'        => 'image|mimes:jpg,jpeg,png|max:2048',
-            'foto_gizi'     => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-        ]);
+/**
+ * Menyimpan produk baru yang diinput oleh Admin dengan logging detail.
+ *
+ * @param  \Illuminate\Http\Request  $request
+ * @return \Illuminate\Http\RedirectResponse
+ */
+public function storeByAdmin(Request $request)
+{
+    // --- Langkah 1: Logging Awal ---
+    // Mencatat bahwa proses dimulai, ini membantu menemukan log yang relevan.
+    Log::info('--- Memulai storeByAdmin ---');
 
-        $nutritionKeys = ['kalori', 'lemak_total', 'lemak_jenuh', 'protein', 'gula', 'karbohidrat', 'garam'];
-        foreach ($nutritionKeys as $key) {
-            if (empty($validated[$key])) {
-                $validated[$key] = 0;
-            }
+    $validated = $request->validate([
+        'kode_produk'   => 'required|unique:product,kode_produk',
+        'nama_produk'   => 'required',
+        'kategori'      => 'required|in:minuman,snack dan cemilan,makanan instan',
+        'stock'         => 'required|integer',
+        'harga'         => 'required|integer|min:0',
+        'kalori'        => 'nullable|integer',
+        'lemak_total'   => 'nullable|numeric',
+        'lemak_jenuh'   => 'nullable|numeric',
+        'protein'       => 'nullable|numeric',
+        'gula'          => 'nullable|numeric',
+        'karbohidrat'   => 'nullable|numeric',
+        'garam'         => 'nullable|numeric',
+        'foto.*'        => 'image|mimes:jpg,jpeg,png|max:2048',
+        'foto_gizi'     => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+    ]);
+
+    $nutritionKeys = ['kalori', 'lemak_total', 'lemak_jenuh', 'protein', 'gula', 'karbohidrat', 'garam'];
+    foreach ($nutritionKeys as $key) {
+        if (empty($validated[$key])) {
+            $validated[$key] = 0;
         }
+    }
 
-        $fotoPaths = [];
-        if ($request->hasFile('foto')) {
-            Log::info('Proses upload foto produk dimulai.');
-            foreach ($request->file('foto') as $foto) {
-                // Simpan file langsung di direktori public/uploads/foto_produk
-                $path = $foto->store('foto_produk', 'public');
-                Log::info('Path file yang disimpan: ' . $path);
-                if (!$path) {
-                    Log::error('Gagal menyimpan file foto produk.');
-                    return back()->withErrors(['foto' => 'Gagal upload file!']);
-                }
+    $fotoPaths = [];
+    if ($request->hasFile('foto')) {
+        Log::info('[FOTO PRODUK] Request memiliki file `foto`. Memulai proses upload.');
+        foreach ($request->file('foto') as $index => $foto) {
+            // --- Langkah 2: Logging Detail per File ---
+            // Mencatat detail setiap file yang diupload.
+            Log::info("[FOTO PRODUK - File #{$index}] Nama Asli: " . $foto->getClientOriginalName());
+            Log::info("[FOTO PRODUK - File #{$index}] Ukuran: " . $foto->getSize() . " bytes");
+            Log::info("[FOTO PRODUK - File #{$index}] Apakah Valid: " . ($foto->isValid() ? 'Ya' : 'Tidak'));
+
+            if (!$foto->isValid()) {
+                Log::error("[FOTO PRODUK - File #{$index}] File tidak valid. Kode Error: " . $foto->getError());
+                continue; // Lanjut ke file berikutnya jika ada
+            }
+
+            // --- Langkah 3: Eksekusi dan Logging Hasil Store ---
+            // Ini adalah bagian paling penting. Kita mencatat hasil dari perintah store().
+            $path = $foto->store('foto_produk', 'public');
+            Log::info("[FOTO PRODUK - File #{$index}] Hasil dari store(): " . ($path ?: 'GAGAL'));
+
+            if ($path) {
                 $fotoPaths[] = 'storage/' . $path;
-                Log::info('Path yang akan disimpan di DB: ' . end($fotoPaths));
+                Log::info("[FOTO PRODUK - File #{$index}] Path yang akan disimpan ke DB: " . end($fotoPaths));
+            } else {
+                Log::error("[FOTO PRODUK - File #{$index}] Gagal menyimpan file ke storage.");
             }
         }
+    } else {
+        Log::warning('[FOTO PRODUK] Request tidak mengandung file `foto`.');
+    }
 
-        $fotoGiziPath = null;
-        if ($request->hasFile('foto_gizi')) {
-            Log::info('Proses upload foto gizi dimulai.');
-            $fotoGizi = $request->file('foto_gizi');
+    $fotoGiziPath = null;
+    if ($request->hasFile('foto_gizi')) {
+        Log::info('[FOTO GIZI] Request memiliki file `foto_gizi`. Memulai proses upload.');
+        $fotoGizi = $request->file('foto_gizi');
+
+        Log::info('[FOTO GIZI] Nama Asli: ' . $fotoGizi->getClientOriginalName());
+        Log::info('[FOTO GIZI] Ukuran: ' . $fotoGizi->getSize() . ' bytes');
+        Log::info('[FOTO GIZI] Apakah Valid: ' . ($fotoGizi->isValid() ? 'Ya' : 'Tidak'));
+
+        if ($fotoGizi->isValid()) {
             $pathGizi = $fotoGizi->store('foto_gizi', 'public');
-            Log::info('Path file gizi yang disimpan: ' . $pathGizi);
+            Log::info("[FOTO GIZI] Hasil dari store(): " . ($pathGizi ?: 'GAGAL'));
+
             if ($pathGizi) {
                 $fotoGiziPath = 'storage/' . $pathGizi;
-                Log::info('Path gizi yang akan disimpan di DB: ' . $fotoGiziPath);
+                Log::info('[FOTO GIZI] Path yang akan disimpan ke DB: ' . $fotoGiziPath);
+            } else {
+                Log::error('[FOTO GIZI] Gagal menyimpan file ke storage.');
             }
+        } else {
+             Log::error('[FOTO GIZI] File tidak valid. Kode Error: ' . $fotoGizi->getError());
         }
-
-        $validated['foto'] = $fotoPaths;
-        $validated['foto_gizi'] = $fotoGiziPath;
-        $validated['status'] = 'approved';
-
-        $product = Product::create($validated);
-        Log::info('Produk baru berhasil dibuat dengan ID: ' . $product->id);
-
-        LogAktivitas::create([
-            'user_id'   => Auth::id(),
-            'role'      => Auth::user()->role ?? 'admin',
-            'aksi'      => 'input_produk',
-            'kategori'  => 'produk',
-            'deskripsi' => 'Input produk: ' . $product->nama_produk . ' (Kode: ' . $product->kode_produk . ')',
-            'ip_address'=> $request->ip(),
-        ]);
-
-        return redirect()->route('admin.produk.index')->with('success', 'Produk berhasil ditambahkan.');
     }
+
+    $validated['foto'] = $fotoPaths;
+    $validated['foto_gizi'] = $fotoGiziPath;
+    $validated['status'] = 'approved';
+
+    $product = Product::create($validated);
+    Log::info('Produk baru berhasil dibuat di database dengan ID: ' . $product->id);
+    Log::info('--- Selesai storeByAdmin ---');
+
+    LogAktivitas::create([
+        'user_id'   => Auth::id(),
+        'role'      => Auth::user()->role ?? 'admin',
+        'aksi'      => 'input_produk',
+        'kategori'  => 'produk',
+        'deskripsi' => 'Input produk: ' . $product->nama_produk . ' (Kode: ' . $product->kode_produk . ')',
+        'ip_address'=> $request->ip(),
+    ]);
+
+    return redirect()->route('admin.produk.index')->with('success', 'Produk berhasil ditambahkan.');
+}
 
     public function show($id)
     {
