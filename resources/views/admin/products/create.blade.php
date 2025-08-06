@@ -6,8 +6,10 @@
 @endsection
 
 @section('content')
-{{-- Menambahkan x-data di sini untuk mengontrol state modal --}}
-<div class="py-8" x-data="{ showModal: false, modalImageUrl: '' }">
+{{-- ==================================================================== --}}
+{{-- PERUBAHAN 1: Tambahkan ID unik 'product-form' di sini --}}
+{{-- ==================================================================== --}}
+<div class="py-8" id="product-form" x-data="{ showModal: false, modalImageUrl: '' }">
     <div class="max-w-3xl mx-auto bg-white rounded-xl shadow-lg p-8 border border-gray-100">
         <div class="flex items-center mb-8">
             <a href="{{ route('admin.produk.index') }}"
@@ -176,9 +178,7 @@
         </form>
     </div>
 
-    {{-- ==================================================================== --}}
-    {{-- MODAL UNTUK PREVIEW GAMBAR DITAMBAHKAN DI SINI --}}
-    {{-- ==================================================================== --}}
+    {{-- MODAL UNTUK PREVIEW GAMBAR --}}
     <div x-show="showModal"
          x-transition:enter="transition ease-out duration-300"
          x-transition:enter-start="opacity-0"
@@ -195,8 +195,6 @@
             <img :src="modalImageUrl" alt="Preview Gambar" class="rounded-lg max-h-[calc(90vh-2rem)]">
         </div>
     </div>
-    {{-- ==================================================================== --}}
-
 </div>
 
 @push('scripts')
@@ -214,34 +212,37 @@ document.addEventListener('DOMContentLoaded', function () {
             nutritionSection.classList.remove('hidden');
         } else {
             nutritionSection.classList.add('hidden');
-            showAllCheckbox.checked = false;
+            showAllCheckbox.checked = false; // Reset checkbox jika section disembunyikan
         }
+
         const selectedKategori = kategoriSelect.value;
+
         if (selectedKategori === 'minuman' && addNutritionToggle.checked) {
             showAllCheckboxWrapper.classList.remove('hidden');
         } else {
             showAllCheckboxWrapper.classList.add('hidden');
-            showAllCheckbox.checked = false;
+            showAllCheckbox.checked = false; // Reset checkbox jika tidak relevan
         }
+
         if (selectedKategori === 'minuman' && !showAllCheckbox.checked) {
             optionalFields.forEach(field => field.classList.add('hidden'));
         } else {
             optionalFields.forEach(field => field.classList.remove('hidden'));
         }
     }
+
     addNutritionToggle.addEventListener('change', updateFormVisibility);
     kategoriSelect.addEventListener('change', updateFormVisibility);
     showAllCheckbox.addEventListener('change', updateFormVisibility);
     updateFormVisibility();
 
-
     // ====================================================================
-    // PERUBAHAN DI SINI: Membuat preview gambar bisa di-klik
+    // PERUBAHAN 2: Gunakan ID unik '#product-form' untuk selector
     // ====================================================================
     const inputProduk = document.getElementById('foto_produk');
     const previewProduk = document.getElementById('preview-produk');
     inputProduk.addEventListener('change', function () {
-        previewProduk.innerHTML = '';
+        previewProduk.innerHTML = ''; // Kosongkan preview lama
         if (inputProduk.files.length > 0) {
             Array.from(inputProduk.files).forEach(file => {
                 const reader = new FileReader();
@@ -250,11 +251,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     img.src = e.target.result;
                     img.className = "w-20 h-20 object-cover rounded border border-gray-200 shadow cursor-pointer hover:scale-105 transition";
 
-                    // Tambahkan event listener untuk memicu modal
                     img.addEventListener('click', () => {
-                        const alpineComponent = document.querySelector('[x-data]');
-                        alpineComponent.__x.data.modalImageUrl = e.target.result;
-                        alpineComponent.__x.data.showModal = true;
+                        const alpineComponent = document.querySelector('#product-form');
+                        if (alpineComponent && alpineComponent.__x) {
+                            alpineComponent.__x.data.modalImageUrl = e.target.result;
+                            alpineComponent.__x.data.showModal = true;
+                        }
                     });
 
                     previewProduk.appendChild(img);
@@ -276,11 +278,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 img.src = e.target.result;
                 img.className = "w-20 h-20 object-cover rounded border border-green-200 shadow cursor-pointer hover:scale-105 transition";
 
-                // Tambahkan event listener untuk memicu modal
                 img.addEventListener('click', () => {
-                    const alpineComponent = document.querySelector('[x-data]');
-                    alpineComponent.__x.data.modalImageUrl = e.target.result;
-                    alpineComponent.__x.data.showModal = true;
+                    const alpineComponent = document.querySelector('#product-form');
+                    if (alpineComponent && alpineComponent.__x) {
+                        alpineComponent.__x.data.modalImageUrl = e.target.result;
+                        alpineComponent.__x.data.showModal = true;
+                    }
                 });
 
                 previewGizi.appendChild(img);
@@ -291,7 +294,6 @@ document.addEventListener('DOMContentLoaded', function () {
     // ====================================================================
     // AKHIR DARI PERUBAHAN
     // ====================================================================
-
 
     // ===== Foto Gizi (OCR processing) =====
     inputGizi.addEventListener('change', function (e) {
