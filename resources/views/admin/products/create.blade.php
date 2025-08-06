@@ -6,10 +6,7 @@
 @endsection
 
 @section('content')
-{{-- ==================================================================== --}}
-{{-- PERUBAHAN 1: Tambahkan ID unik 'product-form' di sini --}}
-{{-- ==================================================================== --}}
-<div class="py-8" id="product-form" x-data="{ showModal: false, modalImageUrl: '' }">
+<div class="py-8">
     <div class="max-w-3xl mx-auto bg-white rounded-xl shadow-lg p-8 border border-gray-100">
         <div class="flex items-center mb-8">
             <a href="{{ route('admin.produk.index') }}"
@@ -22,7 +19,6 @@
         <form action="{{ route('admin.produk.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
             @csrf
 
-            {{-- TAMPILKAN ERROR VALIDASI UMUM JIKA ADA --}}
             @if ($errors->any())
                 <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
                     <strong class="font-bold">Terjadi Kesalahan!</strong>
@@ -85,7 +81,7 @@
                                 <span class="mt-1 text-sm text-gray-600">Klik untuk pilih hingga 2 foto produk</span>
                                 <input type="file" name="foto[]" id="foto_produk" accept="image/*" multiple class="hidden" />
                             </label>
-                            <div id="preview-produk" class="flex gap-3 mt-3"></div>
+                            <div id="preview-produk" class="flex flex-wrap gap-4 mt-4"></div>
                             @error('foto.*') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
                             <span class="block mt-1 text-xs text-gray-500 leading-relaxed">
                                 <strong>Ukuran file foto maksimal 2MB.</strong>
@@ -119,7 +115,7 @@
                         <span class="mt-1 text-sm text-green-700">Klik untuk unggah 1 foto label gizi</span>
                         <input type="file" name="foto_gizi" id="foto_gizi" accept="image/*" class="hidden" />
                     </label>
-                    <div id="preview-gizi" class="flex gap-3 mt-3"></div>
+                    <div id="preview-gizi" class="flex flex-wrap gap-4 mt-4"></div>
                     @error('foto_gizi') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
                     <span class="block mt-1 text-xs text-gray-500 leading-relaxed">
                         <strong>Tips Mengunggah Label Gizi:</strong><br>
@@ -151,7 +147,6 @@
                         <input type="number" step="0.1" name="garam" id="garam" value="{{ old('garam') }}" class="w-full border border-gray-300 px-3 py-2 rounded shadow-sm @error('garam') border-red-500 @enderror">
                         @error('garam') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
                     </div>
-                    {{-- Kolom opsional --}}
                     <div class="nutrition-field-optional">
                         <label class="block text-gray-700 mb-2 font-medium">Lemak Total (g)</label>
                         <input type="number" step="0.1" name="lemak_total" id="lemak_total" value="{{ old('lemak_total') }}" class="w-full border border-gray-300 px-3 py-2 rounded shadow-sm @error('lemak_total') border-red-500 @enderror">
@@ -177,24 +172,6 @@
             </div>
         </form>
     </div>
-
-    {{-- MODAL UNTUK PREVIEW GAMBAR --}}
-    <div x-show="showModal"
-         x-transition:enter="transition ease-out duration-300"
-         x-transition:enter-start="opacity-0"
-         x-transition:enter-end="opacity-100"
-         x-transition:leave="transition ease-in duration-200"
-         x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0"
-         class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4"
-         style="display: none;">
-        <div @click.away="showModal = false" class="relative bg-white p-4 rounded-lg shadow-xl max-w-2xl max-h-[90vh]">
-            <button @click="showModal = false" class="absolute -top-3 -right-3 bg-red-500 text-white rounded-full h-8 w-8 flex items-center justify-center focus:outline-none hover:bg-red-600 transition">
-                <i class="fas fa-times"></i>
-            </button>
-            <img :src="modalImageUrl" alt="Preview Gambar" class="rounded-lg max-h-[calc(90vh-2rem)]">
-        </div>
-    </div>
 </div>
 
 @push('scripts')
@@ -212,53 +189,38 @@ document.addEventListener('DOMContentLoaded', function () {
             nutritionSection.classList.remove('hidden');
         } else {
             nutritionSection.classList.add('hidden');
-            showAllCheckbox.checked = false; // Reset checkbox jika section disembunyikan
+            showAllCheckbox.checked = false;
         }
-
         const selectedKategori = kategoriSelect.value;
-
         if (selectedKategori === 'minuman' && addNutritionToggle.checked) {
             showAllCheckboxWrapper.classList.remove('hidden');
         } else {
             showAllCheckboxWrapper.classList.add('hidden');
-            showAllCheckbox.checked = false; // Reset checkbox jika tidak relevan
+            showAllCheckbox.checked = false;
         }
-
         if (selectedKategori === 'minuman' && !showAllCheckbox.checked) {
             optionalFields.forEach(field => field.classList.add('hidden'));
         } else {
             optionalFields.forEach(field => field.classList.remove('hidden'));
         }
     }
-
     addNutritionToggle.addEventListener('change', updateFormVisibility);
     kategoriSelect.addEventListener('change', updateFormVisibility);
     showAllCheckbox.addEventListener('change', updateFormVisibility);
     updateFormVisibility();
 
-    // ====================================================================
-    // PERUBAHAN 2: Gunakan ID unik '#product-form' untuk selector
-    // ====================================================================
+    // ===== Auto preview Foto Produk (multiple) =====
     const inputProduk = document.getElementById('foto_produk');
     const previewProduk = document.getElementById('preview-produk');
     inputProduk.addEventListener('change', function () {
-        previewProduk.innerHTML = ''; // Kosongkan preview lama
+        previewProduk.innerHTML = '';
         if (inputProduk.files.length > 0) {
             Array.from(inputProduk.files).forEach(file => {
                 const reader = new FileReader();
                 reader.onload = e => {
                     let img = document.createElement('img');
                     img.src = e.target.result;
-                    img.className = "w-20 h-20 object-cover rounded border border-gray-200 shadow cursor-pointer hover:scale-105 transition";
-
-                    img.addEventListener('click', () => {
-                        const alpineComponent = document.querySelector('#product-form');
-                        if (alpineComponent && alpineComponent.__x) {
-                            alpineComponent.__x.data.modalImageUrl = e.target.result;
-                            alpineComponent.__x.data.showModal = true;
-                        }
-                    });
-
+                    img.className = "w-40 h-40 object-cover rounded-lg border-2 border-gray-200 shadow-md";
                     previewProduk.appendChild(img);
                 };
                 reader.readAsDataURL(file);
@@ -266,6 +228,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
+    // ===== Auto preview Foto Gizi (single) =====
     const inputGizi = document.getElementById('foto_gizi');
     const previewGizi = document.getElementById('preview-gizi');
     inputGizi.addEventListener('change', function () {
@@ -276,24 +239,12 @@ document.addEventListener('DOMContentLoaded', function () {
             reader.onload = e => {
                 let img = document.createElement('img');
                 img.src = e.target.result;
-                img.className = "w-20 h-20 object-cover rounded border border-green-200 shadow cursor-pointer hover:scale-105 transition";
-
-                img.addEventListener('click', () => {
-                    const alpineComponent = document.querySelector('#product-form');
-                    if (alpineComponent && alpineComponent.__x) {
-                        alpineComponent.__x.data.modalImageUrl = e.target.result;
-                        alpineComponent.__x.data.showModal = true;
-                    }
-                });
-
+                img.className = "w-full h-auto object-contain rounded-lg border-2 border-green-200 shadow-md";
                 previewGizi.appendChild(img);
             };
             reader.readAsDataURL(file);
         }
     });
-    // ====================================================================
-    // AKHIR DARI PERUBAHAN
-    // ====================================================================
 
     // ===== Foto Gizi (OCR processing) =====
     inputGizi.addEventListener('change', function (e) {
