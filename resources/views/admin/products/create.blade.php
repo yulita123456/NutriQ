@@ -6,11 +6,12 @@
 @endsection
 
 @section('content')
-<div class="py-8">
+{{-- Menambahkan x-data di sini untuk mengontrol state modal --}}
+<div class="py-8" x-data="{ showModal: false, modalImageUrl: '' }">
     <div class="max-w-3xl mx-auto bg-white rounded-xl shadow-lg p-8 border border-gray-100">
         <div class="flex items-center mb-8">
             <a href="{{ route('admin.produk.index') }}"
-                class="inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded shadow font-semibold transition mr-3">
+               class="inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded shadow font-semibold transition mr-3">
                 <i class="fas fa-arrow-left mr-2"></i>
                 Kembali
             </a>
@@ -39,13 +40,13 @@
                         <div>
                             <label class="block text-gray-700 mb-2 font-medium">Kode Produk</label>
                             <input type="text" name="kode_produk" value="{{ old('kode_produk') }}"
-                                class="w-full border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-green-300 shadow-sm @error('kode_produk') border-red-500 @enderror" required>
+                                   class="w-full border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-green-300 shadow-sm @error('kode_produk') border-red-500 @enderror" required>
                             @error('kode_produk') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
                         </div>
                         <div>
                             <label class="block text-gray-700 mb-2 font-medium">Nama Produk</label>
                             <input type="text" name="nama_produk" value="{{ old('nama_produk') }}"
-                                class="w-full border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-green-300 shadow-sm @error('nama_produk') border-red-500 @enderror" required>
+                                   class="w-full border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-green-300 shadow-sm @error('nama_produk') border-red-500 @enderror" required>
                             @error('nama_produk') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
                         </div>
                     </div>
@@ -63,7 +64,7 @@
                         <div>
                             <label class="block text-gray-700 mb-2 font-medium">Stock</label>
                             <input type="number" name="stock" value="{{ old('stock') }}"
-                                class="w-full border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-green-300 shadow-sm @error('stock') border-red-500 @enderror" required>
+                                   class="w-full border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-green-300 shadow-sm @error('stock') border-red-500 @enderror" required>
                             @error('stock') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
                         </div>
                     </div>
@@ -71,13 +72,13 @@
                         <div>
                             <label class="block text-gray-700 mb-2 font-medium">Harga (Rp)</label>
                             <input type="number" name="harga" value="{{ old('harga') }}"
-                                class="w-full border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-green-300 shadow-sm @error('harga') border-red-500 @enderror" required>
+                                   class="w-full border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-green-300 shadow-sm @error('harga') border-red-500 @enderror" required>
                             @error('harga') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
                         </div>
                         <div>
                             <label class="block mb-2 text-gray-700 font-medium">Foto Produk <span class="text-xs text-gray-400 font-normal">(maks 2 foto)</span></label>
                             <label for="foto_produk"
-                                class="flex flex-col items-center justify-center h-36 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-green-400 transition bg-gray-50 @error('foto.*') border-red-500 @enderror">
+                                   class="flex flex-col items-center justify-center h-36 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-green-400 transition bg-gray-50 @error('foto.*') border-red-500 @enderror">
                                 <i class="fas fa-image fa-2x text-green-400"></i>
                                 <span class="mt-1 text-sm text-gray-600">Klik untuk pilih hingga 2 foto produk</span>
                                 <input type="file" name="foto[]" id="foto_produk" accept="image/*" multiple class="hidden" />
@@ -111,7 +112,7 @@
                 <div>
                     <label class="block mb-2 text-gray-700 font-medium">Foto Informasi Gizi</label>
                     <label for="foto_gizi"
-                        class="flex flex-col items-center justify-center h-32 border-2 border-dashed border-green-400 rounded-lg cursor-pointer hover:border-green-500 transition bg-green-50 @error('foto_gizi') border-red-500 @enderror">
+                           class="flex flex-col items-center justify-center h-32 border-2 border-dashed border-green-400 rounded-lg cursor-pointer hover:border-green-500 transition bg-green-50 @error('foto_gizi') border-red-500 @enderror">
                         <i class="fas fa-seedling fa-lg text-green-500"></i>
                         <span class="mt-1 text-sm text-green-700">Klik untuk unggah 1 foto label gizi</span>
                         <input type="file" name="foto_gizi" id="foto_gizi" accept="image/*" class="hidden" />
@@ -174,6 +175,28 @@
             </div>
         </form>
     </div>
+
+    {{-- ==================================================================== --}}
+    {{-- MODAL UNTUK PREVIEW GAMBAR DITAMBAHKAN DI SINI --}}
+    {{-- ==================================================================== --}}
+    <div x-show="showModal"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4"
+         style="display: none;">
+        <div @click.away="showModal = false" class="relative bg-white p-4 rounded-lg shadow-xl max-w-2xl max-h-[90vh]">
+            <button @click="showModal = false" class="absolute -top-3 -right-3 bg-red-500 text-white rounded-full h-8 w-8 flex items-center justify-center focus:outline-none hover:bg-red-600 transition">
+                <i class="fas fa-times"></i>
+            </button>
+            <img :src="modalImageUrl" alt="Preview Gambar" class="rounded-lg max-h-[calc(90vh-2rem)]">
+        </div>
+    </div>
+    {{-- ==================================================================== --}}
+
 </div>
 
 @push('scripts')
@@ -191,36 +214,30 @@ document.addEventListener('DOMContentLoaded', function () {
             nutritionSection.classList.remove('hidden');
         } else {
             nutritionSection.classList.add('hidden');
-            showAllCheckbox.checked = false; // Reset checkbox jika section disembunyikan
+            showAllCheckbox.checked = false;
         }
-
         const selectedKategori = kategoriSelect.value;
-
-        // Tampilkan checkbox "Tampilkan semua kolom gizi" hanya jika kategori "minuman" dan toggle gizi aktif
         if (selectedKategori === 'minuman' && addNutritionToggle.checked) {
             showAllCheckboxWrapper.classList.remove('hidden');
         } else {
             showAllCheckboxWrapper.classList.add('hidden');
-            showAllCheckbox.checked = false; // Reset checkbox jika tidak relevan
+            showAllCheckbox.checked = false;
         }
-
-        // Tampilkan/sembunyikan kolom opsional berdasarkan kategori dan checkbox "tampilkan semua"
         if (selectedKategori === 'minuman' && !showAllCheckbox.checked) {
             optionalFields.forEach(field => field.classList.add('hidden'));
         } else {
             optionalFields.forEach(field => field.classList.remove('hidden'));
         }
     }
-
-    // Event listeners
     addNutritionToggle.addEventListener('change', updateFormVisibility);
     kategoriSelect.addEventListener('change', updateFormVisibility);
     showAllCheckbox.addEventListener('change', updateFormVisibility);
-
-    // Initial call to set correct visibility based on initial state/old input
     updateFormVisibility();
 
-    // ===== Auto preview Foto Produk (multiple) =====
+
+    // ====================================================================
+    // PERUBAHAN DI SINI: Membuat preview gambar bisa di-klik
+    // ====================================================================
     const inputProduk = document.getElementById('foto_produk');
     const previewProduk = document.getElementById('preview-produk');
     inputProduk.addEventListener('change', function () {
@@ -231,7 +248,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 reader.onload = e => {
                     let img = document.createElement('img');
                     img.src = e.target.result;
-                    img.className = "w-20 h-20 object-cover rounded border border-gray-200 shadow";
+                    img.className = "w-20 h-20 object-cover rounded border border-gray-200 shadow cursor-pointer hover:scale-105 transition";
+
+                    // Tambahkan event listener untuk memicu modal
+                    img.addEventListener('click', () => {
+                        const alpineComponent = document.querySelector('[x-data]');
+                        alpineComponent.__x.data.modalImageUrl = e.target.result;
+                        alpineComponent.__x.data.showModal = true;
+                    });
+
                     previewProduk.appendChild(img);
                 };
                 reader.readAsDataURL(file);
@@ -239,7 +264,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // ===== Auto preview Foto Gizi (single) =====
     const inputGizi = document.getElementById('foto_gizi');
     const previewGizi = document.getElementById('preview-gizi');
     inputGizi.addEventListener('change', function () {
@@ -250,12 +274,24 @@ document.addEventListener('DOMContentLoaded', function () {
             reader.onload = e => {
                 let img = document.createElement('img');
                 img.src = e.target.result;
-                img.className = "w-20 h-20 object-cover rounded border border-green-200 shadow";
+                img.className = "w-20 h-20 object-cover rounded border border-green-200 shadow cursor-pointer hover:scale-105 transition";
+
+                // Tambahkan event listener untuk memicu modal
+                img.addEventListener('click', () => {
+                    const alpineComponent = document.querySelector('[x-data]');
+                    alpineComponent.__x.data.modalImageUrl = e.target.result;
+                    alpineComponent.__x.data.showModal = true;
+                });
+
                 previewGizi.appendChild(img);
             };
             reader.readAsDataURL(file);
         }
     });
+    // ====================================================================
+    // AKHIR DARI PERUBAHAN
+    // ====================================================================
+
 
     // ===== Foto Gizi (OCR processing) =====
     inputGizi.addEventListener('change', function (e) {
@@ -300,7 +336,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const input = document.getElementById(field);
         if (input) {
             input.addEventListener('input', function (e) {
-                // Langsung ganti koma jadi titik saat user mengetik
                 this.value = this.value.replace(/,/g, '.');
             });
         }
