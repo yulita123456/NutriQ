@@ -83,6 +83,9 @@
                             </label>
                             <div id="preview-produk" class="flex flex-wrap gap-3 mt-3"></div>
                             @error('foto.*') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
+                            {{-- ==================================================================== --}}
+                            {{-- TEKS DISCLAIMER FOTO PRODUK DIKEMBALIKAN --}}
+                            {{-- ==================================================================== --}}
                             <span class="block mt-1 text-xs text-gray-500 leading-relaxed">
                                 <strong>Ukuran file foto maksimal 2MB.</strong>
                             </span>
@@ -99,18 +102,13 @@
                 </label>
             </div>
 
-            {{-- ==================================================================== --}}
             {{-- BAGIAN GIZI YANG DIROMBAK --}}
-            {{-- ==================================================================== --}}
             <div id="nutrition-section" class="hidden space-y-6">
-                {{-- Layout 2 Kolom --}}
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
 
-                    {{-- Kolom Kiri: Upload & Preview Foto Gizi --}}
                     <div class="space-y-3">
                         <label class="block text-gray-700 font-medium">Foto Informasi Gizi</label>
                         <div id="preview-gizi" class="w-full bg-gray-50 rounded-lg p-2 border min-h-[10rem]">
-                            {{-- Preview akan muncul di sini --}}
                         </div>
                         <label for="foto_gizi"
                                class="flex w-full items-center justify-center gap-2 py-2 bg-green-50 hover:bg-green-100 text-green-700 rounded-lg cursor-pointer transition border border-green-200 @error('foto_gizi') border-red-500 @enderror">
@@ -119,12 +117,18 @@
                             <input type="file" name="foto_gizi" id="foto_gizi" accept="image/*" class="hidden" />
                         </label>
                         @error('foto_gizi') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
+                        {{-- ==================================================================== --}}
+                        {{-- TEKS DISCLAIMER OCR DIKEMBALIKAN --}}
+                        {{-- ==================================================================== --}}
                         <span class="block mt-1 text-xs text-gray-500 leading-relaxed">
-                            <b>Tips:</b> Pastikan foto jelas & tidak blur agar data bisa terbaca otomatis.
+                            <strong>Tips Mengunggah Label Gizi:</strong><br>
+                            - Pastikan foto label diambil dengan <b>kamera yang jelas &amp; tidak blur</b>.<br>
+                            - Pastikan <b>seluruh tulisan pada label gizi dapat terbaca</b>.<br>
+                            <strong class="text-yellow-600">Disclaimer:</strong><br>
+                            Fitur pembacaan otomatis (OCR) <b>masih dalam tahap pengembangan</b>. Mohon untuk <b>selalu memeriksa dan memastikan hasil isian data gizi sudah sesuai.</b>
                         </span>
                     </div>
 
-                    {{-- Kolom Kanan: Form Isian Gizi --}}
                     <div class="space-y-4">
                         <div id="show-all-nutrition-wrapper" class="hidden">
                             <label class="flex items-center space-x-2 text-sm text-gray-600">
@@ -210,7 +214,6 @@ document.addEventListener('DOMContentLoaded', function () {
     showAllCheckbox.addEventListener('change', updateFormVisibility);
     updateFormVisibility();
 
-    // ===== Auto preview Foto Produk (multiple) =====
     const inputProduk = document.getElementById('foto_produk');
     const previewProduk = document.getElementById('preview-produk');
     inputProduk.addEventListener('change', function () {
@@ -221,7 +224,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 reader.onload = e => {
                     let img = document.createElement('img');
                     img.src = e.target.result;
-                    // Ukuran preview diperkecil agar lebih rapi
                     img.className = "w-24 h-24 object-cover rounded-lg border-2 border-gray-200 shadow-sm";
                     previewProduk.appendChild(img);
                 };
@@ -230,18 +232,16 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // ===== Auto preview Foto Gizi (single) =====
     const inputGizi = document.getElementById('foto_gizi');
     const previewGizi = document.getElementById('preview-gizi');
     inputGizi.addEventListener('change', function () {
-        previewGizi.innerHTML = ''; // Kosongkan preview lama
+        previewGizi.innerHTML = '';
         if (inputGizi.files.length > 0) {
             const file = inputGizi.files[0];
             const reader = new FileReader();
             reader.onload = e => {
                 let img = document.createElement('img');
                 img.src = e.target.result;
-                // Ukuran preview disesuaikan untuk kolom samping
                 img.className = "w-full h-auto max-h-64 object-contain rounded-lg";
                 previewGizi.appendChild(img);
             };
@@ -249,19 +249,14 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // ===== Foto Gizi (OCR processing) =====
     inputGizi.addEventListener('change', function (e) {
         const file = e.target.files[0];
         if (!file) return;
-
         const formData = new FormData();
         formData.append('foto', file);
-
         fetch('{{ route("produk.extractText") }}', {
             method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-            },
+            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
             body: formData
         })
         .then(res => res.json())
@@ -284,7 +279,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // ===== Converter Koma ke Titik =====
     const decimalFields = [
         'kalori', 'lemak_total', 'lemak_jenuh', 'protein', 'gula', 'karbohidrat', 'garam'
     ];
