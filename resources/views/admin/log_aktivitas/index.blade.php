@@ -166,7 +166,6 @@
                         <li><span class="font-semibold">Role:</span> ${data.role}</li>
                         <li><span class="font-semibold">Aksi:</span> ${data.aksi}</li>
                         <li><span class="font-semibold">Deskripsi:</span> ${data.deskripsi || '-'}</li>
-                        <li><span class="font-semibold">IP Address:</span> ${data.ip_address || '-'}</li>
                     </ul>
                 `;
                 document.getElementById('logModalContent').innerHTML = html;

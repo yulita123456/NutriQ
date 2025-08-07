@@ -11,7 +11,7 @@
                 <div>
                     <div class="text-gray-500">Informasi lengkap dan riwayat transaksi.</div>
                 </div>
-                <a href="{{ route('admin.dashboard') }}"
+                <a href="{{ route('admin.user.index') }}"
                    class="inline-flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold px-5 py-2 rounded-lg shadow transition">
                    <i class="fas fa-arrow-left"></i> Kembali
                 </a>

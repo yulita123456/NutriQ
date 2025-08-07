@@ -64,13 +64,13 @@
                             <i class="fas fa-clipboard-list w-5"></i> Log Aktivitas
                         </a>
                     </li>
-                    <li>
+                    {{-- <li>
                         <a href="{{ route('admin.pengaturan.index') }}"
                            class="flex items-center gap-3 px-6 py-3 text-gray-700 rounded-lg hover:bg-green-50 transition
                             {{ request()->routeIs('admin.pengaturan.*') ? 'bg-green-100 text-green-700 font-semibold' : '' }}">
                             <i class="fas fa-cog w-5"></i> Pengaturan
                         </a>
-                    </li>
+                    </li> --}}
                 </ul>
             </nav>
         </div>
