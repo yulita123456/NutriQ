@@ -6,6 +6,7 @@ use App\Models\Transaction;
 use App\Models\TransactionDetail;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Carbon\Carbon;
 
 class DashboardRekapExport implements FromCollection, WithHeadings
 {
@@ -31,7 +32,7 @@ class DashboardRekapExport implements FromCollection, WithHeadings
 
         if ($this->bulan) {
             // --- Rekap per tanggal ---
-            $lastDay = cal_days_in_month(CAL_GREGORIAN, $this->bulan, $this->tahun);
+            $lastDay = Carbon::createFromDate($this->tahun, $this->bulan)->daysInMonth;
 
             foreach (range(1, $lastDay) as $tgl) {
                 // Query transaksi hari ini
