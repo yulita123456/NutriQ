@@ -30,7 +30,7 @@ class AdminDashboardController extends Controller
         $salesValues = [];
 
         if ($bulan) {
-            $lastDay = cal_days_in_month(CAL_GREGORIAN, $bulan, $tahun);
+            $lastDay = Carbon::createFromDate($tahun, $bulan, 1)->daysInMonth;
             for ($tanggal = 1; $tanggal <= $lastDay; $tanggal++) {
                 $salesLabels[] = str_pad($tanggal, 2, '0', STR_PAD_LEFT);
                 $salesValues[] = Transaction::whereYear('created_at', $tahun)
