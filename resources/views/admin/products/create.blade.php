@@ -7,7 +7,7 @@
 
 @section('content')
 <div class="py-8">
-    <div class="max-w-3xl mx-auto bg-white rounded-xl shadow-lg p-8 border border-gray-100">
+    <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-8 border border-gray-100">
         <div class="flex items-center mb-8">
             <a href="{{ route('admin.produk.index') }}"
                class="inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded shadow font-semibold transition mr-3">
@@ -81,7 +81,7 @@
                                 <span class="mt-1 text-sm text-gray-600">Klik untuk pilih hingga 2 foto produk</span>
                                 <input type="file" name="foto[]" id="foto_produk" accept="image/*" multiple class="hidden" />
                             </label>
-                            <div id="preview-produk" class="flex flex-wrap gap-4 mt-4"></div>
+                            <div id="preview-produk" class="flex flex-wrap gap-3 mt-3"></div>
                             @error('foto.*') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
                             <span class="block mt-1 text-xs text-gray-500 leading-relaxed">
                                 <strong>Ukuran file foto maksimal 2MB.</strong>
@@ -99,68 +99,69 @@
                 </label>
             </div>
 
-            {{-- SELURUH BAGIAN GIZI (AWALNYA TERSEMBUNYI) --}}
+            {{-- ==================================================================== --}}
+            {{-- BAGIAN GIZI YANG DIROMBAK --}}
+            {{-- ==================================================================== --}}
             <div id="nutrition-section" class="hidden space-y-6">
-                <div id="show-all-nutrition-wrapper" class="hidden">
-                    <label class="flex items-center space-x-2 text-sm text-gray-600">
-                      <input type="checkbox" id="show-all-nutrition" class="rounded text-green-500 focus:ring-green-400" {{ old('show_all_nutrition') ? 'checked' : '' }}>
-                      <span>Tampilkan semua kolom gizi (opsional)</span>
-                    </label>
-                </div>
-                <div>
-                    <label class="block mb-2 text-gray-700 font-medium">Foto Informasi Gizi</label>
-                    <label for="foto_gizi"
-                           class="flex flex-col items-center justify-center h-32 border-2 border-dashed border-green-400 rounded-lg cursor-pointer hover:border-green-500 transition bg-green-50 @error('foto_gizi') border-red-500 @enderror">
-                        <i class="fas fa-seedling fa-lg text-green-500"></i>
-                        <span class="mt-1 text-sm text-green-700">Klik untuk unggah 1 foto label gizi</span>
-                        <input type="file" name="foto_gizi" id="foto_gizi" accept="image/*" class="hidden" />
-                    </label>
-                    <div id="preview-gizi" class="flex flex-wrap gap-4 mt-4"></div>
-                    @error('foto_gizi') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
-                    <span class="block mt-1 text-xs text-gray-500 leading-relaxed">
-                        <strong>Tips Mengunggah Label Gizi:</strong><br>
-                        - Pastikan foto label diambil dengan <b>kamera yang jelas &amp; tidak blur</b>.<br>
-                        - Pastikan <b>seluruh tulisan pada label gizi dapat terbaca</b>.<br>
-                        <strong class="text-yellow-600">Disclaimer:</strong><br>
-                        Fitur pembacaan otomatis (OCR) <b>masih dalam tahap pengembangan</b>. Mohon untuk <b>selalu memeriksa dan memastikan hasil isian data gizi sudah sesuai.</b>
-                    </span>
-                </div>
+                {{-- Layout 2 Kolom --}}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
 
-                <div class="grid md:grid-cols-3 gap-6">
-                    <div class="nutrition-field-always-show">
-                        <label class="block text-gray-700 mb-2 font-medium">Kalori (kkal)</label>
-                        <input type="number" name="kalori" id="kalori" value="{{ old('kalori') }}" class="w-full border border-gray-300 px-3 py-2 rounded shadow-sm @error('kalori') border-red-500 @enderror">
-                        @error('kalori') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
+                    {{-- Kolom Kiri: Upload & Preview Foto Gizi --}}
+                    <div class="space-y-3">
+                        <label class="block text-gray-700 font-medium">Foto Informasi Gizi</label>
+                        <div id="preview-gizi" class="w-full bg-gray-50 rounded-lg p-2 border min-h-[10rem]">
+                            {{-- Preview akan muncul di sini --}}
+                        </div>
+                        <label for="foto_gizi"
+                               class="flex w-full items-center justify-center gap-2 py-2 bg-green-50 hover:bg-green-100 text-green-700 rounded-lg cursor-pointer transition border border-green-200 @error('foto_gizi') border-red-500 @enderror">
+                            <i class="fas fa-upload"></i>
+                            <span>Unggah Foto Label Gizi</span>
+                            <input type="file" name="foto_gizi" id="foto_gizi" accept="image/*" class="hidden" />
+                        </label>
+                        @error('foto_gizi') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
+                        <span class="block mt-1 text-xs text-gray-500 leading-relaxed">
+                            <b>Tips:</b> Pastikan foto jelas & tidak blur agar data bisa terbaca otomatis.
+                        </span>
                     </div>
-                    <div class="nutrition-field-always-show">
-                        <label class="block text-gray-700 mb-2 font-medium">Karbohidrat (g)</label>
-                        <input type="number" step="0.1" name="karbohidrat" id="karbohidrat" value="{{ old('karbohidrat') }}" class="w-full border border-gray-300 px-3 py-2 rounded shadow-sm @error('karbohidrat') border-red-500 @enderror">
-                        @error('karbohidrat') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
-                    </div>
-                    <div class="nutrition-field-always-show">
-                        <label class="block text-gray-700 mb-2 font-medium">Gula (g)</label>
-                        <input type="number" step="0.1" name="gula" id="gula" value="{{ old('gula') }}" class="w-full border border-gray-300 px-3 py-2 rounded shadow-sm @error('gula') border-red-500 @enderror">
-                        @error('gula') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
-                    </div>
-                    <div class="nutrition-field-always-show">
-                        <label class="block text-gray-700 mb-2 font-medium">Garam (mg)</label>
-                        <input type="number" step="0.1" name="garam" id="garam" value="{{ old('garam') }}" class="w-full border border-gray-300 px-3 py-2 rounded shadow-sm @error('garam') border-red-500 @enderror">
-                        @error('garam') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
-                    </div>
-                    <div class="nutrition-field-optional">
-                        <label class="block text-gray-700 mb-2 font-medium">Lemak Total (g)</label>
-                        <input type="number" step="0.1" name="lemak_total" id="lemak_total" value="{{ old('lemak_total') }}" class="w-full border border-gray-300 px-3 py-2 rounded shadow-sm @error('lemak_total') border-red-500 @enderror">
-                        @error('lemak_total') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
-                    </div>
-                    <div class="nutrition-field-optional">
-                        <label class="block text-gray-700 mb-2 font-medium">Lemak Jenuh (g)</label>
-                        <input type="number" step="0.1" name="lemak_jenuh" id="lemak_jenuh" value="{{ old('lemak_jenuh') }}" class="w-full border border-gray-300 px-3 py-2 rounded shadow-sm @error('lemak_jenuh') border-red-500 @enderror">
-                        @error('lemak_jenuh') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
-                    </div>
-                    <div class="nutrition-field-optional">
-                        <label class="block text-gray-700 mb-2 font-medium">Protein (g)</label>
-                        <input type="number" step="0.1" name="protein" id="protein" value="{{ old('protein') }}" class="w-full border border-gray-300 px-3 py-2 rounded shadow-sm @error('protein') border-red-500 @enderror">
-                        @error('protein') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
+
+                    {{-- Kolom Kanan: Form Isian Gizi --}}
+                    <div class="space-y-4">
+                        <div id="show-all-nutrition-wrapper" class="hidden">
+                            <label class="flex items-center space-x-2 text-sm text-gray-600">
+                              <input type="checkbox" id="show-all-nutrition" class="rounded text-green-500 focus:ring-green-400" {{ old('show_all_nutrition') ? 'checked' : '' }}>
+                              <span>Tampilkan semua kolom gizi (opsional)</span>
+                            </label>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="nutrition-field-always-show">
+                                <label class="block text-gray-700 mb-1 text-sm">Kalori (kkal)</label>
+                                <input type="number" name="kalori" id="kalori" value="{{ old('kalori') }}" class="w-full border border-gray-300 px-3 py-2 rounded shadow-sm text-sm @error('kalori') border-red-500 @enderror">
+                            </div>
+                            <div class="nutrition-field-always-show">
+                                <label class="block text-gray-700 mb-1 text-sm">Karbohidrat (g)</label>
+                                <input type="number" step="0.1" name="karbohidrat" id="karbohidrat" value="{{ old('karbohidrat') }}" class="w-full border border-gray-300 px-3 py-2 rounded shadow-sm text-sm @error('karbohidrat') border-red-500 @enderror">
+                            </div>
+                            <div class="nutrition-field-always-show">
+                                <label class="block text-gray-700 mb-1 text-sm">Gula (g)</label>
+                                <input type="number" step="0.1" name="gula" id="gula" value="{{ old('gula') }}" class="w-full border border-gray-300 px-3 py-2 rounded shadow-sm text-sm @error('gula') border-red-500 @enderror">
+                            </div>
+                            <div class="nutrition-field-always-show">
+                                <label class="block text-gray-700 mb-1 text-sm">Garam (mg)</label>
+                                <input type="number" step="0.1" name="garam" id="garam" value="{{ old('garam') }}" class="w-full border border-gray-300 px-3 py-2 rounded shadow-sm text-sm @error('garam') border-red-500 @enderror">
+                            </div>
+                            <div class="nutrition-field-optional">
+                                <label class="block text-gray-700 mb-1 text-sm">Lemak Total (g)</label>
+                                <input type="number" step="0.1" name="lemak_total" id="lemak_total" value="{{ old('lemak_total') }}" class="w-full border border-gray-300 px-3 py-2 rounded shadow-sm text-sm @error('lemak_total') border-red-500 @enderror">
+                            </div>
+                            <div class="nutrition-field-optional">
+                                <label class="block text-gray-700 mb-1 text-sm">Lemak Jenuh (g)</label>
+                                <input type="number" step="0.1" name="lemak_jenuh" id="lemak_jenuh" value="{{ old('lemak_jenuh') }}" class="w-full border border-gray-300 px-3 py-2 rounded shadow-sm text-sm @error('lemak_jenuh') border-red-500 @enderror">
+                            </div>
+                            <div class="nutrition-field-optional col-span-2">
+                                <label class="block text-gray-700 mb-1 text-sm">Protein (g)</label>
+                                <input type="number" step="0.1" name="protein" id="protein" value="{{ old('protein') }}" class="w-full border border-gray-300 px-3 py-2 rounded shadow-sm text-sm @error('protein') border-red-500 @enderror">
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -220,7 +221,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 reader.onload = e => {
                     let img = document.createElement('img');
                     img.src = e.target.result;
-                    img.className = "w-40 h-40 object-cover rounded-lg border-2 border-gray-200 shadow-md";
+                    // Ukuran preview diperkecil agar lebih rapi
+                    img.className = "w-24 h-24 object-cover rounded-lg border-2 border-gray-200 shadow-sm";
                     previewProduk.appendChild(img);
                 };
                 reader.readAsDataURL(file);
@@ -232,14 +234,15 @@ document.addEventListener('DOMContentLoaded', function () {
     const inputGizi = document.getElementById('foto_gizi');
     const previewGizi = document.getElementById('preview-gizi');
     inputGizi.addEventListener('change', function () {
-        previewGizi.innerHTML = '';
+        previewGizi.innerHTML = ''; // Kosongkan preview lama
         if (inputGizi.files.length > 0) {
             const file = inputGizi.files[0];
             const reader = new FileReader();
             reader.onload = e => {
                 let img = document.createElement('img');
                 img.src = e.target.result;
-                img.className = "w-full h-auto object-contain rounded-lg border-2 border-green-200 shadow-md";
+                // Ukuran preview disesuaikan untuk kolom samping
+                img.className = "w-full h-auto max-h-64 object-contain rounded-lg";
                 previewGizi.appendChild(img);
             };
             reader.readAsDataURL(file);
