@@ -14,6 +14,7 @@ class UserController extends Controller
     public function index(Request $request)
     {
         $query = User::query();
+        $query->where('role', 'user');
 
         // Fitur pencarian (search by nama/email)
         if ($request->q) {
