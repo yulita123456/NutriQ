@@ -75,7 +75,7 @@
                     <span class="hidden sm:inline">Download Excel</span>
                 </button>
             </form>
-            <form method="GET" action="{{ route('admin.pembayaran.rekap') }}">
+            {{-- <form method="GET" action="{{ route('admin.pembayaran.rekap') }}">
                 <input type="hidden" name="bulan" value="{{ request('bulan') }}">
                 <input type="hidden" name="tahun" value="{{ request('tahun') }}">
                 <input type="hidden" name="status" value="{{ request('status') }}">
@@ -84,7 +84,7 @@
                     <i class="fas fa-table"></i>
                     <span class="hidden sm:inline">Download Rekap</span>
                 </button>
-            </form>
+            </form> --}}
         </div>
     </div>
 

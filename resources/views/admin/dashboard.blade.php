@@ -69,14 +69,14 @@
                 </button>
             </form>
             <!-- Tombol Download Rekap Total -->
-            <form method="GET" action="{{ route('admin.dashboard.rekap') }}">
+            {{-- <form method="GET" action="{{ route('admin.dashboard.rekap') }}">
                 <input type="hidden" name="tahun" value="{{ request('tahun', now()->year) }}">
                 <input type="hidden" name="bulan" value="{{ request('bulan') }}">
                 <button type="submit"
                     class="bg-green-700 text-white px-3 py-1 rounded-r text-xs font-semibold flex items-center gap-2 hover:bg-green-800">
                     <i class="fas fa-table"></i> Download Rekap Total
                 </button>
-            </form>
+            </form> --}}
         </div>
     </div>
         <canvas id="salesChart" height="120"></canvas>
