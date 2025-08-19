@@ -1,11 +1,11 @@
 <?php
 return [
-    'kalori' => 2150,
-    'protein' => 60,
-    'lemak_total' => 67,
+    'kalori' => 2400,
+    'protein' => 65,
+    'lemak_total' => 71,
     'lemak_jenuh' => 20,
-    'karbohidrat' => 325,
-    'gula' => 50,
-    'garam' => 5,
+    'karbohidrat' => 372,
+    'gula' => 60,
+    'garam' => 2,
     'batas_sehat' => 20,
 ];

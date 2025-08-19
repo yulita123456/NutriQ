@@ -1,19 +1,22 @@
 <?php
+
 namespace App\Exports;
 
 use App\Models\Transaction;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Events\AfterSheet;
 
-class TransactionsExport implements FromCollection, WithHeadings
+class TransactionsExport implements FromCollection, WithHeadings, WithEvents
 {
     protected $tahun;
     protected $bulan;
     protected $status;
+    protected $totalSum = 0; // untuk menyimpan total
 
     public function __construct($tahun = null, $bulan = null, $status = null)
     {
-        // Pastikan tahun tidak pernah kosong/null
         $this->tahun = $tahun ?: date('Y');
         $this->bulan = $bulan;
         $this->status = $status;
@@ -23,26 +26,53 @@ class TransactionsExport implements FromCollection, WithHeadings
     {
         $query = Transaction::with('user')->orderBy('created_at', 'desc');
 
-        // Filter jika bulan/tahun/status diisi
         if ($this->bulan) $query->whereMonth('created_at', $this->bulan);
         if ($this->tahun) $query->whereYear('created_at', $this->tahun);
         if ($this->status) $query->where('status', $this->status);
 
-        // Ambil semua transaksi & format baris Excel-nya
-        return $query->get()->map(function ($trx) {
+        $data = $query->get();
+
+        // Hitung total semua transaksi
+        $this->totalSum = $data->sum('total');
+
+        // Map data untuk ditampilkan di Excel
+        $mapped = $data->map(function ($trx) {
             return [
-                'Order ID' => $trx->order_id,
-                'User'     => $trx->user->name ?? '-',
-                'Email'    => $trx->user->email ?? '-',
-                'Total'    => $trx->total,
-                'Status'   => $trx->status,
-                'Tanggal'  => $trx->created_at ? $trx->created_at->format('d/m/Y H:i') : '-',
+                $trx->order_id,
+                $trx->user->name ?? '-',
+                $trx->user->email ?? '-',
+                $trx->total,
+                $trx->status,
+                $trx->created_at ? $trx->created_at->format('d/m/Y H:i') : '-',
             ];
         });
+
+        // Tambahkan baris kosong + total di bawahnya
+        $mapped->push(['', '', 'Total Penjualan:', $this->totalSum, '', '']);
+
+        return $mapped;
     }
 
     public function headings(): array
     {
         return ['Order ID', 'User', 'Email', 'Total', 'Status', 'Tanggal'];
+    }
+
+    public function registerEvents(): array
+    {
+        return [
+            AfterSheet::class => function (AfterSheet $event) {
+                // Format heading bold
+                $event->sheet->getStyle('A1:F1')->getFont()->setBold(true);
+
+                // Format angka di kolom Total (D)
+                $highestRow = $event->sheet->getHighestRow();
+                $event->sheet->getStyle("D2:D$highestRow")->getNumberFormat()
+                    ->setFormatCode('#,##0');
+
+                // Bold pada baris total (baris terakhir)
+                $event->sheet->getStyle("A$highestRow:F$highestRow")->getFont()->setBold(true);
+            },
+        ];
     }
 }

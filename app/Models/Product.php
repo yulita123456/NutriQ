@@ -64,7 +64,7 @@ class Product extends Model
         // Hanya 3 komponen utama yang dinilai
         return ($persen['gula'] <= $batas)
             && ($persen['garam'] <= $batas)
-            && ($persen['lemak_jenuh'] <= $batas);
+            && ($persen['lemak_total'] <= $batas);
     }
 
     public function hasNutritionData()
