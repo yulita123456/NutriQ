@@ -13,7 +13,9 @@ class TransactionsExport implements FromCollection, WithHeadings, WithEvents
     protected $tahun;
     protected $bulan;
     protected $status;
-    protected $totalSum = 0; // untuk menyimpan total
+    protected $totalSettlement = 0;
+    protected $totalPending = 0;
+    protected $totalFailed = 0;
 
     public function __construct($tahun = null, $bulan = null, $status = null)
     {
@@ -32,10 +34,12 @@ class TransactionsExport implements FromCollection, WithHeadings, WithEvents
 
         $data = $query->get();
 
-        // Hitung total semua transaksi
-        $this->totalSum = $data->sum('total');
+        // Hitung total berdasarkan status
+        $this->totalSettlement = $data->where('status', 'settlement')->sum('total');
+        $this->totalPending    = $data->where('status', 'pending')->sum('total');
+        $this->totalFailed     = $data->where('status', 'failed')->sum('total');
 
-        // Map data untuk ditampilkan di Excel
+        // Map data transaksi
         $mapped = $data->map(function ($trx) {
             return [
                 $trx->order_id,
@@ -47,8 +51,10 @@ class TransactionsExport implements FromCollection, WithHeadings, WithEvents
             ];
         });
 
-        // Tambahkan baris kosong + total di bawahnya
-        $mapped->push(['', '', 'Total Penjualan:', $this->totalSum, '', '']);
+        // Tambahkan baris total berdasarkan status
+        $mapped->push(['', '', 'Total Settlement (Sukses):', $this->totalSettlement, '', '']);
+        $mapped->push(['', '', 'Total Pending (Belum Bayar):', $this->totalPending, '', '']);
+        $mapped->push(['', '', 'Total Failed (Gagal):', $this->totalFailed, '', '']);
 
         return $mapped;
     }
@@ -62,16 +68,19 @@ class TransactionsExport implements FromCollection, WithHeadings, WithEvents
     {
         return [
             AfterSheet::class => function (AfterSheet $event) {
-                // Format heading bold
+                // Bold heading
                 $event->sheet->getStyle('A1:F1')->getFont()->setBold(true);
 
-                // Format angka di kolom Total (D)
                 $highestRow = $event->sheet->getHighestRow();
+
+                // Format angka kolom D (Total)
                 $event->sheet->getStyle("D2:D$highestRow")->getNumberFormat()
                     ->setFormatCode('#,##0');
 
-                // Bold pada baris total (baris terakhir)
-                $event->sheet->getStyle("A$highestRow:F$highestRow")->getFont()->setBold(true);
+                // Bold baris total (3 baris terakhir)
+                for ($i = $highestRow - 2; $i <= $highestRow; $i++) {
+                    $event->sheet->getStyle("A{$i}:F{$i}")->getFont()->setBold(true);
+                }
             },
         ];
     }
